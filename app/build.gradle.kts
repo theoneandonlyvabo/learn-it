@@ -7,6 +7,8 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.detekt)
+
+    id("com.google.gms.google-services")
 }
 
 detekt {
@@ -21,13 +23,11 @@ kotlin {
 }
 
 android {
-    // TODO: Set Namespace
-    namespace = "com.debk007.template"
+    namespace = "com.learnit.app"
     compileSdk = 36
 
     defaultConfig {
-        // TODO: Set Package Name
-        applicationId = "com.debk007.template"
+        applicationId = "com.learnit.app"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
@@ -49,9 +49,6 @@ android {
             "https://dummyjson.com/"
         }
 
-        /* TODO: Add base URL in local.properties file as:-
-         *  BASE_URL=https://dummyjson.com/
-        */
         buildConfigField("String", "BASE_URL", "\"${baseUrl}\"")
     }
 
@@ -105,4 +102,6 @@ dependencies {
     ksp(libs.hilt.kapt)
     implementation(libs.hilt.navigation.compose)
     implementation(libs.navigation.compose)
+
+    implementation(platform("com.google.firebase:firebase-bom:34.15.0"))
 }
