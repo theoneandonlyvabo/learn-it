@@ -51,7 +51,13 @@ android {
 
         buildConfigField("String", "BASE_URL", "\"${baseUrl}\"")
 
-        val groqApiKey = localProperties.getProperty("GROQ_API_KEY", "")
+        val envFile = rootProject.file(".env")
+        val groqApiKey = if (envFile.exists()) {
+            envFile.readLines()
+                .firstOrNull { it.startsWith("GROQ_API_KEY=") }
+                ?.substringAfter("=")
+                ?.trim() ?: ""
+        } else ""
         buildConfigField("String", "GROQ_API_KEY", "\"${groqApiKey}\"")
     }
 
