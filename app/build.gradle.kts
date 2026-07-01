@@ -50,6 +50,9 @@ android {
         }
 
         buildConfigField("String", "BASE_URL", "\"${baseUrl}\"")
+
+        val glmApiKey = localProperties.getProperty("GLM_API_KEY", "")
+        buildConfigField("String", "GLM_API_KEY", "\"${glmApiKey}\"")
     }
 
     buildTypes {
@@ -104,4 +107,15 @@ dependencies {
     implementation(libs.navigation.compose)
 
     implementation(platform("com.google.firebase:firebase-bom:34.15.0"))
+    // Firebase version managed by BOM — string literals required (version catalog can't resolve BOM-managed versions)
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation(libs.coroutines.play.services)
+
+    // Room
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+
+    testImplementation(libs.coroutines.test)
 }
