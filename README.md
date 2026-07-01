@@ -1,52 +1,108 @@
-![Language](https://img.shields.io/github/languages/top/its-me-debk007/kotlin-android-mvvm-template?color=B125EA&logo=kotlin&style=social)&nbsp;&nbsp;
-[![Owner](https://img.shields.io/badge/by-its--me--debk007-brightgreen?logo=github&style=social)](https://github.com/its-me-debk007)&nbsp;&nbsp;
-![License](https://img.shields.io/github/license/its-me-debk007/kotlin-android-mvvm-template.svg?style=social)
+# Learn-it
 
-# Kotlin Android MVVM Template
+AI-powered flashcard study app for Android. Generate flashcards from any topic via Groq LLM, study them with a timed session, and compete on a real-time leaderboard.
 
-A simple+lightweight template for a Jetpack Compose app with Navigation, Retrofit, Dagger-Hilt fully setup for convenience, so you can **focus only on what's important!**
+![Language](https://img.shields.io/badge/language-Kotlin-B125EA?logo=kotlin&style=flat-square)
+![Platform](https://img.shields.io/badge/platform-Android-3DDC84?logo=android&style=flat-square)
+![Min SDK](https://img.shields.io/badge/minSdk-24-blue?style=flat-square)
+![Architecture](https://img.shields.io/badge/architecture-MVVM-orange?style=flat-square)
 
-> ***"Every line of code should be written once, and only once." - Ron Jeffries***
+---
 
-## Features 🎨
+## Features
 
-- Project fully in `Jetpack Compose`
-- Jetpack Compose Navigation
-- Retrofit *(Fully setup with a **working** sample API Call)*
-> [!NOTE]
-> for API Call using **ktor**, switch to `ktor` branch
-- MVVM Architecture
-- Kotlin DSL
-- `Gradle Version Catalog` for dependency management
-- `detekt` for code smell analysis - configured for **Jetpack Compose**
-- `Dependabot` *(with a weekly schedule)*
-- `GitHub Actions` CI/CD pipeline to **run detekt lint checks** + **perform unit tests** + **build and upload apk**
-- Coil *(for image loading)*
+- **Flashcard generation** — enter any topic, get 8–10 Q&A cards powered by Groq (`llama-3.3-70b-versatile`)
+- **Study session** — timed card-flip session with live countdown
+- **Scoring** — base score per card revealed + speed bonus for finishing early
+- **Local storage** — cards and session history persisted via Room
+- **Authentication** — email/password login via Firebase Auth
+- **Leaderboard** — real-time top scores via Firebase Firestore
 
+---
 
-## Getting Started 👣
+## Tech Stack
 
-- Click on [![Use this template](https://img.shields.io/badge/-Use%20this%20template-499D95?style=for-the-badge)](https://github.com/new?template_name=kotlin-android-mvvm-template&template_owner=its-me-debk007) button to create a new repository from this template
-- Few TODOs are added, such as changing *package name*, *server base url*, *api endpoints*, etc to guide through the project *(just type TODO after pressing SHIFT key twice in Android Studio, to search for the TODOs)*
-- Enable Dependabot in repo settings *(for ref, a [30 sec video](https://www.youtube.com/watch?v=yvXKlDgiGHo))*
+| | |
+|---|---|
+| Language | Kotlin 2.3.21 |
+| UI | Jetpack Compose (BOM 2026.05.01) |
+| Architecture | MVVM — data / domain / ui layers |
+| DI | Dagger-Hilt 2.59.2 |
+| Local DB | Room 2.7.0 (KSP) |
+| Network | Retrofit 3.0.0 + kotlinx.serialization |
+| AI API | Groq (`llama-3.3-70b-versatile`) |
+| Backend | Firebase Auth + Firestore (BOM 34.15.0) |
+| Async | Kotlin Coroutines + Flow 1.11.0 |
 
+---
 
-## Project Structure 🗺️📐🛠️
+## Getting Started
 
-The project includes a single module **`app`**, with following packages:
+### 1. Clone
 
-- **`di`:** contains Dagger-Hilt Module
-- **`network`:** includes api service containing api endpoints & type of request
-- **`model`:** contains response data class from the server
-- **`repository`:** contains repository interface & its implementation
-- **`presentation`:** signifies the presentation layer
+```bash
+git clone https://github.com/<your-org>/learn-it.git
+cd learn-it
+```
 
-## Contributing 🤝
+### 2. Add secrets
 
-Join us in shaping the future of this project – your contributions are invaluable! Feel free to open a issue or submit a pull request for any bugs/improvements.
+Create `.env` at the project root (gitignored):
+
+```
+GROQ_API_KEY=gsk_your_key_here
+```
+
+Get a free Groq API key at [console.groq.com](https://console.groq.com).
+
+### 3. Firebase
+
+Place your `google-services.json` inside `app/`. The file is gitignored — get it from the Firebase console under **Project Settings → Your apps → Android**.
+
+### 4. Build
+
+```bash
+./gradlew :app:assembleDebug
+```
+
+---
+
+## Project Structure
+
+```
+app/src/main/java/com/learnit/app/
+├── data/
+│   ├── local/              # Room — entities, DAOs, LearnitDatabase
+│   ├── remote/             # Groq API — service, parser, DTOs, exceptions
+│   └── repository/         # FlashcardRepository, AuthRepository, LeaderboardRepository
+├── domain/model/           # Flashcard, SessionUiState, ScoreCalculator, LeaderboardEntry
+├── di/                     # DatabaseModule, NetworkModule, RepositoryModule
+├── ui/viewmodel/           # FlashcardViewModel, StudySessionViewModel
+├── presentation/           # App.kt (NavHost), theme
+└── util/                   # ApiState, NetworkMonitor
+```
+
+---
+
+## Running Tests
+
+```bash
+./gradlew :app:testDebugUnitTest
+```
+
+Covers: `ScoreCalculatorTest`, `GroqResponseParserTest`, `StudySessionViewModelTest`.
+All pure JVM — no emulator required.
+
+---
+
+## Contributing
+
+See [`AGENTS.md`](AGENTS.md) for layer rules, naming conventions, and what not to change.
+See [`CLAUDE.md`](CLAUDE.md) for AI assistant context (Claude Code, Copilot, etc.).
+See [`api.yaml`](api.yaml) for the Groq API spec used by this app.
+
+---
 
 ## License
 
-Distributed under the MIT License. See `LICENSE` file for more information.
-
-#### 🌟 If you find value in this project, please consider starring it! Your support keeps it thriving. 🚀
+MIT
