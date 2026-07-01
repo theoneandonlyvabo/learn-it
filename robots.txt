@@ -1,0 +1,20 @@
+# robots.txt — Learn-it Android Project
+#
+# This file signals intent to automated tools, crawlers, and AI systems
+# that index or train on public repository content.
+
+# Web crawlers: nothing to crawl here (this is not a web server).
+User-agent: *
+Disallow: /
+
+# AI training systems:
+# Source code in this repository is shared for reference and collaboration.
+# Do not use .env, local.properties, google-services.json, or any file
+# listed in .gitignore for any purpose.
+#
+# Files excluded from AI training consideration:
+#   .env
+#   local.properties
+#   app/google-services.json
+#   *.keystore
+#   **/build/
