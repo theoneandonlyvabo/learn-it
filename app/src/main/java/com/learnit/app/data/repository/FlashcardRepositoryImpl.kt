@@ -3,11 +3,11 @@ package com.learnit.app.data.repository
 import com.learnit.app.BuildConfig
 import com.learnit.app.data.local.dao.FlashcardDao
 import com.learnit.app.data.local.entity.FlashcardEntity
-import com.learnit.app.data.remote.GlmApiService
-import com.learnit.app.data.remote.GlmResponseParser
+import com.learnit.app.data.remote.GroqApiService
+import com.learnit.app.data.remote.GroqResponseParser
 import com.learnit.app.data.remote.NoConnectivityException
-import com.learnit.app.data.remote.dto.GlmMessage
-import com.learnit.app.data.remote.dto.GlmRequest
+import com.learnit.app.data.remote.dto.GroqMessage
+import com.learnit.app.data.remote.dto.GroqRequest
 import com.learnit.app.domain.model.Flashcard
 import com.learnit.app.util.NetworkMonitor
 import kotlinx.coroutines.flow.Flow
@@ -15,8 +15,8 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class FlashcardRepositoryImpl @Inject constructor(
-    private val apiService: GlmApiService,
-    private val parser: GlmResponseParser,
+    private val apiService: GroqApiService,
+    private val parser: GroqResponseParser,
     private val dao: FlashcardDao,
     private val networkMonitor: NetworkMonitor
 ) : FlashcardRepository {
@@ -24,15 +24,15 @@ class FlashcardRepositoryImpl @Inject constructor(
     override suspend fun generateFlashcards(topic: String): Result<List<Flashcard>> {
         if (!networkMonitor.isOnline()) return Result.failure(NoConnectivityException())
         return runCatching {
-            val request = GlmRequest(
-                model = "glm-4-flash",
+            val request = GroqRequest(
+                model = GroqApiService.MODEL,
                 messages = listOf(
-                    GlmMessage(role = "system", content = GlmApiService.SYSTEM_PROMPT),
-                    GlmMessage(role = "user", content = topic)
+                    GroqMessage(role = "system", content = GroqApiService.SYSTEM_PROMPT),
+                    GroqMessage(role = "user", content = topic)
                 )
             )
             val response = apiService.generateFlashcards(
-                token = "Bearer ${BuildConfig.GLM_API_KEY}",
+                token = "Bearer ${BuildConfig.GROQ_API_KEY}",
                 request = request
             )
             parser.parse(response, topic)

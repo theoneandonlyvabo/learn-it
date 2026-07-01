@@ -51,8 +51,8 @@ android {
 
         buildConfigField("String", "BASE_URL", "\"${baseUrl}\"")
 
-        val glmApiKey = localProperties.getProperty("GLM_API_KEY", "")
-        buildConfigField("String", "GLM_API_KEY", "\"${glmApiKey}\"")
+        val groqApiKey = localProperties.getProperty("GROQ_API_KEY", "")
+        buildConfigField("String", "GROQ_API_KEY", "\"${groqApiKey}\"")
     }
 
     buildTypes {

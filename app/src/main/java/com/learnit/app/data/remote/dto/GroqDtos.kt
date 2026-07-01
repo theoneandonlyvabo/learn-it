@@ -4,25 +4,25 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class GlmRequest(
+data class GroqRequest(
     val model: String,
-    val messages: List<GlmMessage>
+    val messages: List<GroqMessage>
 )
 
 @Serializable
-data class GlmMessage(
+data class GroqMessage(
     val role: String,
     val content: String
 )
 
 @Serializable
-data class GlmResponse(
-    val choices: List<GlmChoice>
+data class GroqResponse(
+    val choices: List<GroqChoice>
 )
 
 @Serializable
-data class GlmChoice(
-    val message: GlmMessage,
+data class GroqChoice(
+    val message: GroqMessage,
     @SerialName("finish_reason") val finishReason: String? = null
 )
 

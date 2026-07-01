@@ -2,7 +2,7 @@ package com.learnit.app.di
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.learnit.app.data.remote.GlmApiService
+import com.learnit.app.data.remote.GroqApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -29,14 +29,14 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideGlmApiService(client: OkHttpClient): GlmApiService {
+    fun provideGroqApiService(client: OkHttpClient): GroqApiService {
         val json = Json { ignoreUnknownKeys = true }
         return Retrofit.Builder()
-            .baseUrl("https://open.bigmodel.cn/api/paas/v4/")
+            .baseUrl("https://api.groq.com/openai/v1/")
             .client(client)
             .addConverterFactory(json.asConverterFactory("application/json; charset=UTF8".toMediaType()))
             .build()
-            .create(GlmApiService::class.java)
+            .create(GroqApiService::class.java)
     }
 
     @Provides

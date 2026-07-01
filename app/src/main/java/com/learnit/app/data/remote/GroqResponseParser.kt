@@ -1,19 +1,19 @@
 package com.learnit.app.data.remote
 
 import com.learnit.app.data.remote.dto.FlashcardItem
-import com.learnit.app.data.remote.dto.GlmResponse
+import com.learnit.app.data.remote.dto.GroqResponse
 import com.learnit.app.domain.model.Flashcard
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class GlmResponseParser @Inject constructor() {
+class GroqResponseParser @Inject constructor() {
     private val json = Json { ignoreUnknownKeys = true }
 
-    fun parse(response: GlmResponse, topic: String): List<Flashcard> {
+    fun parse(response: GroqResponse, topic: String): List<Flashcard> {
         val raw = response.choices.firstOrNull()?.message?.content
-            ?: throw FlashcardParseException("GLM returned empty content")
+            ?: throw FlashcardParseException("Groq returned empty content")
 
         val cleaned = stripFences(raw)
 
@@ -29,7 +29,6 @@ class GlmResponseParser @Inject constructor() {
         return valid.map { Flashcard(question = it.question, answer = it.answer, topic = topic) }
     }
 
-    // Models sometimes wrap output in ```json ... ``` despite being instructed otherwise.
     private fun stripFences(raw: String): String {
         val trimmed = raw.trim()
         if (!trimmed.startsWith("```")) return trimmed

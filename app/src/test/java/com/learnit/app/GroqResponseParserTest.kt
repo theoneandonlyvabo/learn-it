@@ -1,20 +1,20 @@
 package com.learnit.app
 
 import com.learnit.app.data.remote.FlashcardParseException
-import com.learnit.app.data.remote.GlmResponseParser
-import com.learnit.app.data.remote.dto.GlmChoice
-import com.learnit.app.data.remote.dto.GlmMessage
-import com.learnit.app.data.remote.dto.GlmResponse
+import com.learnit.app.data.remote.GroqResponseParser
+import com.learnit.app.data.remote.dto.GroqChoice
+import com.learnit.app.data.remote.dto.GroqMessage
+import com.learnit.app.data.remote.dto.GroqResponse
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
 
-class GlmResponseParserTest {
-    private val parser = GlmResponseParser()
+class GroqResponseParserTest {
+    private val parser = GroqResponseParser()
     private val topic = "Photosynthesis"
 
-    private fun response(content: String) = GlmResponse(
-        choices = listOf(GlmChoice(message = GlmMessage(role = "assistant", content = content)))
+    private fun response(content: String) = GroqResponse(
+        choices = listOf(GroqChoice(message = GroqMessage(role = "assistant", content = content)))
     )
 
     @Test
