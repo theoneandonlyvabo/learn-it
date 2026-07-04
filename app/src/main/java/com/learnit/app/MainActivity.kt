@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -67,7 +68,7 @@ class MainActivity : ComponentActivity() {
                 val verticalBias = lerpFloat(-0.18f, -0.82f, transitionProgress)
                 val cardAlpha = transitionProgress
 
-                Box(modifier = Modifier.fillMaxSize()) {
+                Box(modifier = Modifier.fillMaxSize().background(Color(0xFFFBFBFF))) {
                     AnimatedContent(
                         targetState = currentScreen,
                         transitionSpec = {

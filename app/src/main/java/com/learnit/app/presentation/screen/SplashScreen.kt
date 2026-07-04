@@ -43,8 +43,6 @@ fun SplashScreen(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            BackgroundElements()
-
             Column(
                 modifier = Modifier
                     .graphicsLayer { alpha = contentAlpha }
@@ -81,17 +79,5 @@ fun SplashScreen(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun BackgroundElements() {
-    Box(modifier = Modifier.fillMaxSize()) {
-        val dotColor = Color(0xFFC0C0E6).copy(alpha = 0.4f)
-        Box(modifier = Modifier.offset(40.dp, 100.dp).size(6.dp).background(dotColor, RoundedCornerShape(3.dp)))
-        Box(modifier = Modifier.offset(300.dp, 200.dp).size(10.dp).background(dotColor, RoundedCornerShape(5.dp)))
-        Box(modifier = Modifier.offset(80.dp, 450.dp).size(8.dp).background(dotColor, RoundedCornerShape(4.dp)))
-        Box(modifier = Modifier.offset(280.dp, 600.dp).size(5.dp).background(dotColor, RoundedCornerShape(2.5.dp)))
-        Box(modifier = Modifier.offset(150.dp, 750.dp).size(12.dp).background(dotColor, RoundedCornerShape(6.dp)))
     }
 }
