@@ -87,7 +87,7 @@ fun StudyScreen(
                 Spacer(modifier = Modifier.height(32.dp))
             }
 
-            items(decks) { deck ->
+            items(decks, key = { it.deckId }) { deck ->
                 DeckCard(
                     title = deck.title,
                     cardCount = deck.cardCount,

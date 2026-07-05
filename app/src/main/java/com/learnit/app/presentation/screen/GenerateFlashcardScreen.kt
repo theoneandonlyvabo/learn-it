@@ -89,7 +89,7 @@ fun GenerateFlashcardScreen(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 // Form Card
-                GenerateFormCard(onGenerateClick = onGenerate)
+                GenerateFormCard(onGenerateClick = onGenerate, isGenerating = isGenerating)
 
                 if (errorMessage != null) {
                     Spacer(modifier = Modifier.height(16.dp))
@@ -143,7 +143,7 @@ fun LoadingOverlay() {
 }
 
 @Composable
-fun GenerateFormCard(onGenerateClick: (topic: String) -> Unit) {
+fun GenerateFormCard(onGenerateClick: (topic: String) -> Unit, isGenerating: Boolean = false) {
     var category by remember { mutableStateOf("") }
     // ponytail: card-count selection is cosmetic — GroqApiService generates a fixed 8-10 cards per
     // topic (api.yaml), so this value isn't sent to the backend. Wire it if Groq supports a count param.
@@ -209,7 +209,7 @@ fun GenerateFormCard(onGenerateClick: (topic: String) -> Unit) {
 
             Button(
                 onClick = { onGenerateClick(topicText) },
-                enabled = topicText.isNotBlank(),
+                enabled = topicText.isNotBlank() && !isGenerating,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)

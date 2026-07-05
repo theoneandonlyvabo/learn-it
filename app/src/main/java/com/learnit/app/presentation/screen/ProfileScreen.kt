@@ -57,6 +57,9 @@ fun ProfileScreen(
     onLogout: () -> Unit = {},
     email: String? = null
 ) {
+    // ponytail: name/level/xp/achievements/stats are static placeholders — no backend tracks
+    // display name, XP, streaks, or achievements yet. Only `email` below is real. Wire these to
+    // a real profile/stats source if that data starts being persisted.
     val user = remember {
         mutableStateOf(
             UserProfile(

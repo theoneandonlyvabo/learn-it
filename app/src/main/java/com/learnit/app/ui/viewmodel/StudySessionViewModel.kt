@@ -69,8 +69,9 @@ class StudySessionViewModel @Inject constructor(
     }
 
     fun finishSession() {
-        timerJob?.cancel()
         val state = _uiState.value
+        if (state.status != SessionStatus.RUNNING) return
+        timerJob?.cancel()
         val finalScore = ScoreCalculator.calculate(
             revealedCards = state.revealedCount,
             totalCards = state.cards.size,

@@ -65,7 +65,9 @@ class MainActivity : ComponentActivity() {
 
                 var hasStartedGenerating by remember { mutableStateOf(false) }
 
-                LaunchedEffect(authState) {
+                // Keyed on currentScreen too so an already-authenticated authState (e.g. surviving
+                // a config change that reset currentScreen back to Login) still redirects.
+                LaunchedEffect(authState, currentScreen) {
                     if (authState is ApiState.Success &&
                         (currentScreen == Screen.Login || currentScreen == Screen.Register)
                     ) {
@@ -82,6 +84,9 @@ class MainActivity : ComponentActivity() {
                             previousScreenForStudySession = Screen.GenerateFlashcard
                             currentScreen = Screen.StudySession
                         }
+                    } else if (hasStartedGenerating && state is ApiState.Error) {
+                        // Attempt finished (failed) — stop treating the screen as "generating".
+                        hasStartedGenerating = false
                     }
                 }
 
@@ -122,20 +127,30 @@ class MainActivity : ComponentActivity() {
                             Screen.Splash -> SplashScreen(
                                 onNavigate = { currentScreen = Screen.Login }
                             )
-                            Screen.Login -> LoginScreen(
-                                logoContent = { Box(Modifier.size(80.dp)) },
-                                onRegisterClick = { currentScreen = Screen.Register },
-                                onLogin = { email, password -> authVm.login(email, password) },
-                                isLoading = authState is ApiState.Loading,
-                                errorMessage = (authState as? ApiState.Error)?.errorMsg
-                            )
-                            Screen.Register -> RegisterScreen(
-                                onBackClick = { currentScreen = Screen.Login },
-                                onSignInClick = { currentScreen = Screen.Login },
-                                onRegister = { email, password -> authVm.register(email, password) },
-                                isLoading = authState is ApiState.Loading,
-                                errorMessage = (authState as? ApiState.Error)?.errorMsg
-                            )
+                            Screen.Login -> {
+                                // Only dismiss a stale Error — never clear Success, which the
+                                // effect above still needs to see in order to navigate away.
+                                LaunchedEffect(Unit) { if (authState !is ApiState.Success) authVm.clearState() }
+                                LoginScreen(
+                                    logoContent = { Box(Modifier.size(80.dp)) },
+                                    onRegisterClick = { currentScreen = Screen.Register },
+                                    onLogin = { email, password -> authVm.login(email, password) },
+                                    isLoading = authState is ApiState.Loading,
+                                    errorMessage = (authState as? ApiState.Error)?.errorMsg
+                                )
+                            }
+                            Screen.Register -> {
+                                // Only dismiss a stale Error — never clear Success, which the
+                                // effect above still needs to see in order to navigate away.
+                                LaunchedEffect(Unit) { if (authState !is ApiState.Success) authVm.clearState() }
+                                RegisterScreen(
+                                    onBackClick = { currentScreen = Screen.Login },
+                                    onSignInClick = { currentScreen = Screen.Login },
+                                    onRegister = { email, password -> authVm.register(email, password) },
+                                    isLoading = authState is ApiState.Loading,
+                                    errorMessage = (authState as? ApiState.Error)?.errorMsg
+                                )
+                            }
                             Screen.Dashboard -> DashboardScreen(
                                 onStudyClick = { 
                                     previousScreenForStudy = null
@@ -182,63 +197,68 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = Screen.Leaderboard 
                                 }
                             )
-                            Screen.Study -> StudyScreen(
-                                showBack = previousScreenForStudy != null,
-                                onBackClick = {
-                                    previousScreenForStudy?.let { currentScreen = it }
-                                    previousScreenForStudy = null
-                                },
-                                onHomeClick = { 
-                                    previousScreenForStudy = null
-                                    currentScreen = Screen.Dashboard 
-                                },
-                                onFlashcardsClick = { 
-                                    previousScreenForFlashcard = null
-                                    previousScreenForStudy = null
-                                    currentScreen = Screen.GenerateFlashcard 
-                                },
-                                onLeaderboardClick = { 
-                                    previousScreenForLeaderboard = null
-                                    previousScreenForStudy = null
-                                    currentScreen = Screen.Leaderboard 
-                                },
-                                onNotificationClick = { 
-                                    previousScreenForNotification = Screen.Study
-                                    currentScreen = Screen.Notification 
-                                },
-                                onProfileClick = { 
-                                    previousScreenForProfile = Screen.Study
-                                    currentScreen = Screen.Profile 
-                                },
-                                onCreateDeckClick = {
-                                    previousScreenForFlashcard = Screen.Study
-                                    currentScreen = Screen.GenerateFlashcard
-                                },
-                                onStudyNowClick = { deckId ->
-                                    val deckCards = flashcards.filter { it.deckId == deckId }
-                                    // ponytail: no-op for a deckId with no cards (e.g. the static
-                                    // AI-recommendation card, which isn't backed by a real deck).
-                                    if (deckCards.isNotEmpty()) {
-                                        studyVm.startSession(deckCards, SESSION_DURATION_SECONDS)
-                                        previousScreenForStudySession = Screen.Study
-                                        currentScreen = Screen.StudySession
-                                    }
-                                },
-                                // ponytail: no persisted per-deck history yet, so DeckCard never
-                                // renders isCompleted=true for a real deck and this never fires.
-                                onViewResultClick = { },
-                                decks = flashcards.groupBy { it.deckId }
-                                    .filterKeys { it.isNotBlank() }
-                                    .map { (deckId, cards) ->
-                                        StudyDeck(
-                                            deckId = deckId,
-                                            title = deckId.substringBeforeLast("_").ifBlank { "Untitled Deck" },
-                                            cardCount = cards.size,
-                                            lastStudied = "Not studied yet",
-                                            progress = 0f
-                                        )
-                                    }
-                            )
+                            Screen.Study -> {
+                                val decksList = remember(flashcards) {
+                                    flashcards.groupBy { it.deckId }
+                                        .filterKeys { it.isNotBlank() }
+                                        .map { (deckId, cards) ->
+                                            StudyDeck(
+                                                deckId = deckId,
+                                                title = deckId.substringBeforeLast("_").ifBlank { "Untitled Deck" },
+                                                cardCount = cards.size,
+                                                lastStudied = "Not studied yet",
+                                                progress = 0f
+                                            )
+                                        }
+                                }
+                                StudyScreen(
+                                    showBack = previousScreenForStudy != null,
+                                    onBackClick = {
+                                        previousScreenForStudy?.let { currentScreen = it }
+                                        previousScreenForStudy = null
+                                    },
+                                    onHomeClick = {
+                                        previousScreenForStudy = null
+                                        currentScreen = Screen.Dashboard
+                                    },
+                                    onFlashcardsClick = {
+                                        previousScreenForFlashcard = null
+                                        previousScreenForStudy = null
+                                        currentScreen = Screen.GenerateFlashcard
+                                    },
+                                    onLeaderboardClick = {
+                                        previousScreenForLeaderboard = null
+                                        previousScreenForStudy = null
+                                        currentScreen = Screen.Leaderboard
+                                    },
+                                    onNotificationClick = {
+                                        previousScreenForNotification = Screen.Study
+                                        currentScreen = Screen.Notification
+                                    },
+                                    onProfileClick = {
+                                        previousScreenForProfile = Screen.Study
+                                        currentScreen = Screen.Profile
+                                    },
+                                    onCreateDeckClick = {
+                                        previousScreenForFlashcard = Screen.Study
+                                        currentScreen = Screen.GenerateFlashcard
+                                    },
+                                    onStudyNowClick = { deckId ->
+                                        val deckCards = flashcards.filter { it.deckId == deckId }
+                                        // ponytail: no-op for a deckId with no cards (e.g. the static
+                                        // AI-recommendation card, which isn't backed by a real deck).
+                                        if (deckCards.isNotEmpty()) {
+                                            studyVm.startSession(deckCards, SESSION_DURATION_SECONDS)
+                                            previousScreenForStudySession = Screen.Study
+                                            currentScreen = Screen.StudySession
+                                        }
+                                    },
+                                    // ponytail: no persisted per-deck history yet, so DeckCard never
+                                    // renders isCompleted=true for a real deck and this never fires.
+                                    onViewResultClick = { },
+                                    decks = decksList
+                                )
+                            }
                             Screen.StudySession -> StudySessionScreen(
                                 state = sessionState,
                                 onBackClick = {
@@ -292,39 +312,45 @@ class MainActivity : ComponentActivity() {
                                     )
                                 }
                             }
-                            Screen.GenerateFlashcard -> GenerateFlashcardScreen(
-                                showBack = previousScreenForFlashcard != null,
-                                onBackClick = { 
-                                    previousScreenForFlashcard?.let { currentScreen = it }
-                                    previousScreenForFlashcard = null
-                                },
-                                onHomeClick = { 
-                                    previousScreenForFlashcard = null
-                                    currentScreen = Screen.Dashboard 
-                                },
-                                onStudyClick = { 
-                                    previousScreenForFlashcard = null
-                                    currentScreen = Screen.Study 
-                                },
-                                onLeaderboardClick = { 
-                                    previousScreenForLeaderboard = null
-                                    currentScreen = Screen.Leaderboard 
-                                },
-                                onNotificationClick = { 
-                                    previousScreenForNotification = Screen.GenerateFlashcard
-                                    currentScreen = Screen.Notification 
-                                },
-                                onProfileClick = { 
-                                    previousScreenForProfile = Screen.GenerateFlashcard
-                                    currentScreen = Screen.Profile 
-                                },
-                                isGenerating = hasStartedGenerating && generateState is ApiState.Loading,
-                                errorMessage = (generateState as? ApiState.Error)?.errorMsg,
-                                onGenerate = { topic ->
-                                    hasStartedGenerating = true
-                                    flashcardVm.generate(topic)
+                            Screen.GenerateFlashcard -> {
+                                // Only dismiss a stale Error — never touch an in-flight attempt.
+                                LaunchedEffect(Unit) {
+                                    if (!hasStartedGenerating) flashcardVm.resetGenerateState()
                                 }
-                            )
+                                GenerateFlashcardScreen(
+                                    showBack = previousScreenForFlashcard != null,
+                                    onBackClick = {
+                                        previousScreenForFlashcard?.let { currentScreen = it }
+                                        previousScreenForFlashcard = null
+                                    },
+                                    onHomeClick = {
+                                        previousScreenForFlashcard = null
+                                        currentScreen = Screen.Dashboard
+                                    },
+                                    onStudyClick = {
+                                        previousScreenForFlashcard = null
+                                        currentScreen = Screen.Study
+                                    },
+                                    onLeaderboardClick = {
+                                        previousScreenForLeaderboard = null
+                                        currentScreen = Screen.Leaderboard
+                                    },
+                                    onNotificationClick = {
+                                        previousScreenForNotification = Screen.GenerateFlashcard
+                                        currentScreen = Screen.Notification
+                                    },
+                                    onProfileClick = {
+                                        previousScreenForProfile = Screen.GenerateFlashcard
+                                        currentScreen = Screen.Profile
+                                    },
+                                    isGenerating = hasStartedGenerating && generateState is ApiState.Loading,
+                                    errorMessage = (generateState as? ApiState.Error)?.errorMsg,
+                                    onGenerate = { topic ->
+                                        hasStartedGenerating = true
+                                        flashcardVm.generate(topic)
+                                    }
+                                )
+                            }
                             Screen.Leaderboard -> LeaderboardScreen(
                                 showBack = previousScreenForLeaderboard != null,
                                 onBackClick = {

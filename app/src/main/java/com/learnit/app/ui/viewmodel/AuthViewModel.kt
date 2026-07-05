@@ -56,4 +56,10 @@ class AuthViewModel @Inject constructor(
         repository.logout()
         _authState.value = null
     }
+
+    // Clears a stale Error/Success from a previous attempt so re-entering the Login/Register
+    // screen doesn't redisplay it before a new attempt is made.
+    fun clearState() {
+        _authState.value = null
+    }
 }

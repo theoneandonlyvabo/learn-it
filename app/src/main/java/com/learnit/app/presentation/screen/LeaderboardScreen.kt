@@ -55,7 +55,7 @@ fun LeaderboardScreen(
     val rankedUsers = entries
         .sortedByDescending { it.score }
         .mapIndexed { index, entry ->
-            val isMe = entry.userId == currentUserId
+            val isMe = currentUserId != null && entry.userId == currentUserId
             LeaderboardUser(
                 rank = index + 1,
                 name = if (isMe) "${entry.username} (You)" else entry.username,
@@ -129,7 +129,7 @@ fun LeaderboardScreen(
                 }
             }
 
-            itemsIndexed(otherUsers) { _, user ->
+            itemsIndexed(otherUsers, key = { _, user -> user.rank }) { _, user ->
                 LeaderboardItem(user, onClick = { })
             }
         }

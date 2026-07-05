@@ -48,4 +48,10 @@ class FlashcardViewModel @Inject constructor(
     fun deleteFlashcard(id: Int) {
         viewModelScope.launch { repository.deleteFlashcard(id) }
     }
+
+    // Clears a stale Error/Success from a previous generation so re-entering the Generate
+    // screen doesn't redisplay it before a new attempt is made.
+    fun resetGenerateState() {
+        _generateState.value = ApiState.Loading
+    }
 }
