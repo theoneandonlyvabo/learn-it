@@ -19,12 +19,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.learnit.app.presentation.component.AppLogo
 import com.learnit.app.presentation.screen.*
 import com.learnit.app.presentation.ui.theme.LearnItTheme
+import com.learnit.app.ui.viewmodel.AuthViewModel
+import com.learnit.app.ui.viewmodel.FlashcardViewModel
+import com.learnit.app.ui.viewmodel.LeaderboardViewModel
+import com.learnit.app.ui.viewmodel.StudySessionViewModel
+import com.learnit.app.util.ApiState
 import dagger.hilt.android.AndroidEntryPoint
 
-enum class Screen { 
+private const val SESSION_DURATION_SECONDS = 300
+
+enum class Screen {
     Splash, Login, Register, Dashboard, Study, StudySession, Result, 
     GenerateFlashcard, Leaderboard, Notification, Profile, HelpSupport, Settings, AppFeatures
 }
@@ -43,8 +51,40 @@ class MainActivity : ComponentActivity() {
                 var previousScreenForNotification by remember { mutableStateOf<Screen?>(null) }
                 var previousScreenForProfile by remember { mutableStateOf<Screen?>(null) }
                 var sessionResultData by remember { mutableStateOf<DeckMasteredResult?>(null) }
-                var selectedCardCount by remember { mutableIntStateOf(5) }
-                
+
+                val authVm: AuthViewModel = hiltViewModel()
+                val flashcardVm: FlashcardViewModel = hiltViewModel()
+                val studyVm: StudySessionViewModel = hiltViewModel()
+                val leaderboardVm: LeaderboardViewModel = hiltViewModel()
+
+                val authState by authVm.authState.collectAsState()
+                val flashcards by flashcardVm.flashcards.collectAsState()
+                val generateState by flashcardVm.generateState.collectAsState()
+                val sessionState by studyVm.uiState.collectAsState()
+                val leaderboardEntries by leaderboardVm.entries.collectAsState()
+
+                var hasStartedGenerating by remember { mutableStateOf(false) }
+
+                LaunchedEffect(authState) {
+                    if (authState is ApiState.Success &&
+                        (currentScreen == Screen.Login || currentScreen == Screen.Register)
+                    ) {
+                        currentScreen = Screen.Dashboard
+                    }
+                }
+
+                LaunchedEffect(generateState) {
+                    val state = generateState
+                    if (hasStartedGenerating && state is ApiState.Success) {
+                        hasStartedGenerating = false
+                        if (state.data.isNotEmpty()) {
+                            studyVm.startSession(state.data, SESSION_DURATION_SECONDS)
+                            previousScreenForStudySession = Screen.GenerateFlashcard
+                            currentScreen = Screen.StudySession
+                        }
+                    }
+                }
+
                 var startSplashAnimation by remember { mutableStateOf(false) }
                 val splashLogoAlpha by animateFloatAsState(
                     targetValue = if (startSplashAnimation) 1f else 0f,
@@ -85,12 +125,16 @@ class MainActivity : ComponentActivity() {
                             Screen.Login -> LoginScreen(
                                 logoContent = { Box(Modifier.size(80.dp)) },
                                 onRegisterClick = { currentScreen = Screen.Register },
-                                onLoginSuccess = { currentScreen = Screen.Dashboard }
+                                onLogin = { email, password -> authVm.login(email, password) },
+                                isLoading = authState is ApiState.Loading,
+                                errorMessage = (authState as? ApiState.Error)?.errorMsg
                             )
                             Screen.Register -> RegisterScreen(
                                 onBackClick = { currentScreen = Screen.Login },
                                 onSignInClick = { currentScreen = Screen.Login },
-                                onSignUpSuccess = { currentScreen = Screen.Dashboard }
+                                onRegister = { email, password -> authVm.register(email, password) },
+                                isLoading = authState is ApiState.Loading,
+                                errorMessage = (authState as? ApiState.Error)?.errorMsg
                             )
                             Screen.Dashboard -> DashboardScreen(
                                 onStudyClick = { 
@@ -166,43 +210,55 @@ class MainActivity : ComponentActivity() {
                                     previousScreenForProfile = Screen.Study
                                     currentScreen = Screen.Profile 
                                 },
-                                onCreateDeckClick = { 
+                                onCreateDeckClick = {
                                     previousScreenForFlashcard = Screen.Study
-                                    currentScreen = Screen.GenerateFlashcard 
+                                    currentScreen = Screen.GenerateFlashcard
                                 },
-                                onStudyNowClick = { _ -> 
-                                    previousScreenForStudySession = Screen.Study
-                                    currentScreen = Screen.StudySession 
+                                onStudyNowClick = { deckId ->
+                                    val deckCards = flashcards.filter { it.deckId == deckId }
+                                    // ponytail: no-op for a deckId with no cards (e.g. the static
+                                    // AI-recommendation card, which isn't backed by a real deck).
+                                    if (deckCards.isNotEmpty()) {
+                                        studyVm.startSession(deckCards, SESSION_DURATION_SECONDS)
+                                        previousScreenForStudySession = Screen.Study
+                                        currentScreen = Screen.StudySession
+                                    }
                                 },
-                                onViewResultClick = { _ -> 
-                                    sessionResultData = DeckMasteredResult(
-                                        totalCards = 50,
-                                        completionXp = 250,
-                                        timeBonusXp = 100,
-                                        streakXp = 100,
-                                        gainedXp = 450,
-                                        currentLevel = 15,
-                                        nextLevel = 16,
-                                        currentXp = 1500,
-                                        maxXp = 2000
-                                    )
-                                    currentScreen = Screen.Result
-                                }
+                                // ponytail: no persisted per-deck history yet, so DeckCard never
+                                // renders isCompleted=true for a real deck and this never fires.
+                                onViewResultClick = { },
+                                decks = flashcards.groupBy { it.deckId }
+                                    .filterKeys { it.isNotBlank() }
+                                    .map { (deckId, cards) ->
+                                        StudyDeck(
+                                            deckId = deckId,
+                                            title = deckId.substringBeforeLast("_").ifBlank { "Untitled Deck" },
+                                            cardCount = cards.size,
+                                            lastStudied = "Not studied yet",
+                                            progress = 0f
+                                        )
+                                    }
                             )
                             Screen.StudySession -> StudySessionScreen(
-                                totalCards = selectedCardCount,
-                                onBackClick = { 
+                                state = sessionState,
+                                onBackClick = {
                                     previousScreenForStudySession?.let { currentScreen = it }
                                     // Jika tidak ada history, default ke Study
                                     if (previousScreenForStudySession == null) currentScreen = Screen.Study
                                 },
-                                onFinishSession = { correct, total ->
+                                onFlip = { studyVm.flipCard() },
+                                onNext = { studyVm.nextCard() },
+                                onFinish = {
+                                    studyVm.finishSession()
+                                    val finished = studyVm.uiState.value
+                                    // ponytail: level/streak/XP-bar gamification is static —
+                                    // ScoreCalculator only produces one aggregate score.
                                     sessionResultData = DeckMasteredResult(
-                                        totalCards = total,
-                                        completionXp = 250,
-                                        timeBonusXp = 100,
-                                        streakXp = 100,
-                                        gainedXp = 450,
+                                        totalCards = finished.cards.size,
+                                        completionXp = finished.score,
+                                        timeBonusXp = 0,
+                                        streakXp = 0,
+                                        gainedXp = finished.score,
                                         currentLevel = 12,
                                         nextLevel = 13,
                                         currentXp = 1250,
@@ -262,10 +318,11 @@ class MainActivity : ComponentActivity() {
                                     previousScreenForProfile = Screen.GenerateFlashcard
                                     currentScreen = Screen.Profile 
                                 },
-                                onGenerateSuccess = { count -> 
-                                    selectedCardCount = count
-                                    previousScreenForStudySession = Screen.GenerateFlashcard
-                                    currentScreen = Screen.StudySession 
+                                isGenerating = hasStartedGenerating && generateState is ApiState.Loading,
+                                errorMessage = (generateState as? ApiState.Error)?.errorMsg,
+                                onGenerate = { topic ->
+                                    hasStartedGenerating = true
+                                    flashcardVm.generate(topic)
                                 }
                             )
                             Screen.Leaderboard -> LeaderboardScreen(
@@ -274,27 +331,29 @@ class MainActivity : ComponentActivity() {
                                     previousScreenForLeaderboard?.let { currentScreen = it }
                                     previousScreenForLeaderboard = null
                                 },
-                                onHomeClick = { 
+                                onHomeClick = {
                                     previousScreenForLeaderboard = null
-                                    currentScreen = Screen.Dashboard 
+                                    currentScreen = Screen.Dashboard
                                 },
-                                onFlashcardsClick = { 
+                                onFlashcardsClick = {
                                     previousScreenForFlashcard = null
                                     previousScreenForLeaderboard = null
-                                    currentScreen = Screen.GenerateFlashcard 
+                                    currentScreen = Screen.GenerateFlashcard
                                 },
-                                onStudyClick = { 
+                                onStudyClick = {
                                     previousScreenForLeaderboard = null
-                                    currentScreen = Screen.Study 
+                                    currentScreen = Screen.Study
                                 },
-                                onNotificationClick = { 
+                                onNotificationClick = {
                                     previousScreenForNotification = Screen.Leaderboard
-                                    currentScreen = Screen.Notification 
+                                    currentScreen = Screen.Notification
                                 },
-                                onProfileClick = { 
+                                onProfileClick = {
                                     previousScreenForProfile = Screen.Leaderboard
-                                    currentScreen = Screen.Profile 
-                                }
+                                    currentScreen = Screen.Profile
+                                },
+                                entries = leaderboardEntries,
+                                currentUserId = leaderboardVm.currentUserId
                             )
                             Screen.Notification -> NotificationScreen(
                                 onBackClick = { 
@@ -351,7 +410,11 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onHelpSupportClick = { currentScreen = Screen.HelpSupport },
                                 onSettingsClick = { currentScreen = Screen.Settings },
-                                onLogout = { currentScreen = Screen.Login }
+                                onLogout = {
+                                    authVm.logout()
+                                    currentScreen = Screen.Login
+                                },
+                                email = authVm.currentEmail
                             )
                             Screen.HelpSupport -> HelpSupportScreen(
                                 onBackClick = { currentScreen = Screen.Profile },

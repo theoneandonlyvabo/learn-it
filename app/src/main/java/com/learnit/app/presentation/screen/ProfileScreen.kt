@@ -54,7 +54,8 @@ fun ProfileScreen(
     onNotificationClick: () -> Unit = {},
     onHelpSupportClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
-    onLogout: () -> Unit = {}
+    onLogout: () -> Unit = {},
+    email: String? = null
 ) {
     val user = remember {
         mutableStateOf(
@@ -108,7 +109,7 @@ fun ProfileScreen(
         ) {
             // Profile Header
             item {
-                ProfileHeader(user.value)
+                ProfileHeader(user.value, email)
                 Spacer(modifier = Modifier.height(32.dp))
             }
 
@@ -139,7 +140,7 @@ fun ProfileScreen(
 }
 
 @Composable
-fun ProfileHeader(user: UserProfile) {
+fun ProfileHeader(user: UserProfile, email: String? = null) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -179,6 +180,15 @@ fun ProfileHeader(user: UserProfile) {
             fontWeight = FontWeight.ExtraBold,
             color = Color.Black
         )
+
+        if (email != null) {
+            Text(
+                text = email,
+                fontSize = 14.sp,
+                color = Color.Gray,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+        }
 
         Spacer(modifier = Modifier.height(12.dp))
 

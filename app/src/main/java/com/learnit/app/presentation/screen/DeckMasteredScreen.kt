@@ -275,7 +275,10 @@ fun DeckRecapCard(totalCards: Int) {
                 }
                 
                 Spacer(modifier = Modifier.height(24.dp))
-                
+
+                // ponytail: these per-skill bars are visual placeholders — ScoreCalculator only
+                // produces one aggregate score, not per-dimension recall/retention/speed/accuracy
+                // breakdowns. Wire real values if the backend starts tracking them.
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)

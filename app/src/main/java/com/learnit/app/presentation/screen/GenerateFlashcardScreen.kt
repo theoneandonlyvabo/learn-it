@@ -25,7 +25,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,20 +36,10 @@ fun GenerateFlashcardScreen(
     onLeaderboardClick: () -> Unit = {},
     onNotificationClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
-    onGenerateSuccess: (Int) -> Unit = {}
+    isGenerating: Boolean = false,
+    errorMessage: String? = null,
+    onGenerate: (topic: String) -> Unit = {}
 ) {
-    var isGenerating by remember { mutableStateOf(false) }
-    var selectedCardCount by remember { mutableIntStateOf(5) }
-
-    // Simulasi proses AI
-    if (isGenerating) {
-        LaunchedEffect(Unit) {
-            delay(3000) 
-            isGenerating = false
-            onGenerateSuccess(selectedCardCount)
-        }
-    }
-
     Scaffold(
         topBar = { 
             CommonTopAppBar(
@@ -100,13 +89,13 @@ fun GenerateFlashcardScreen(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 // Form Card
-                GenerateFormCard(
-                    onGenerateClick = { count -> 
-                        selectedCardCount = count
-                        isGenerating = true 
-                    }
-                )
-                
+                GenerateFormCard(onGenerateClick = onGenerate)
+
+                if (errorMessage != null) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(text = errorMessage, color = Color(0xFFD32F2F), fontSize = 14.sp, textAlign = TextAlign.Center)
+                }
+
                 Spacer(modifier = Modifier.height(40.dp))
             }
 
@@ -154,8 +143,10 @@ fun LoadingOverlay() {
 }
 
 @Composable
-fun GenerateFormCard(onGenerateClick: (Int) -> Unit) {
+fun GenerateFormCard(onGenerateClick: (topic: String) -> Unit) {
     var category by remember { mutableStateOf("") }
+    // ponytail: card-count selection is cosmetic — GroqApiService generates a fixed 8-10 cards per
+    // topic (api.yaml), so this value isn't sent to the backend. Wire it if Groq supports a count param.
     var numberOfCardsStr by remember { mutableStateOf("5 Cards") }
     var topicText by remember { mutableStateOf("") }
 
@@ -217,10 +208,8 @@ fun GenerateFormCard(onGenerateClick: (Int) -> Unit) {
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = { 
-                    val count = numberOfCardsStr.split(" ")[0].toIntOrNull() ?: 5
-                    onGenerateClick(count)
-                },
+                onClick = { onGenerateClick(topicText) },
+                enabled = topicText.isNotBlank(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)

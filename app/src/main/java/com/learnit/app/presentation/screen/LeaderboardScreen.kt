@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.learnit.app.domain.model.LeaderboardEntry
 
 data class LeaderboardUser(
     val rank: Int,
@@ -47,28 +48,24 @@ fun LeaderboardScreen(
     onFlashcardsClick: () -> Unit = {},
     onStudyClick: () -> Unit = {},
     onNotificationClick: () -> Unit = {},
-    onProfileClick: () -> Unit = {}
+    onProfileClick: () -> Unit = {},
+    entries: List<LeaderboardEntry> = emptyList(),
+    currentUserId: String? = null
 ) {
-    val topUsers = listOf(
-        LeaderboardUser(2, "Alex Rivera", "", "14,200 pts"),
-        LeaderboardUser(1, "Sarah Chen", "", "16,850 pts"),
-        LeaderboardUser(3, "Marcus Ng", "", "12,940 pts")
-    )
-
-    val otherUsers = listOf(
-        LeaderboardUser(4, "Jessica Wu", "Study Streak: 15 Days", "11,200"),
-        LeaderboardUser(5, "Kevin Wijaya (You)", "Top 5% this week", "10,850", isMe = true, trend = "+450"),
-        LeaderboardUser(6, "David Smith", "Level 24 Scholar", "9,400"),
-        LeaderboardUser(7, "Elena Petrova", "Mathematics Expert", "8,920"),
-        LeaderboardUser(8, "Kenji Tanaka", "Polyglot Rank", "8,150"),
-        LeaderboardUser(9, "Maria Garcia", "Biology Enthusiast", "7,800"),
-        LeaderboardUser(10, "Ahmed Hassan", "Flashcard Master", "7,450"),
-        LeaderboardUser(11, "Liam O'Connor", "Streak King: 20 Days", "7,100"),
-        LeaderboardUser(12, "Yuki Sato", "Chemistry Pro", "6,800"),
-        LeaderboardUser(13, "Emma Wilson", "Daily Learner", "6,500"),
-        LeaderboardUser(14, "Luca Bianchi", "Consistent Study", "6,200"),
-        LeaderboardUser(15, "Chloe Dubois", "Top 10% Overall", "5,900")
-    )
+    val rankedUsers = entries
+        .sortedByDescending { it.score }
+        .mapIndexed { index, entry ->
+            val isMe = entry.userId == currentUserId
+            LeaderboardUser(
+                rank = index + 1,
+                name = if (isMe) "${entry.username} (You)" else entry.username,
+                subtitle = "",
+                score = entry.score.toString(),
+                isMe = isMe
+            )
+        }
+    val topUsers = rankedUsers.take(3)
+    val otherUsers = rankedUsers.drop(3)
 
     Scaffold(
         topBar = { 
@@ -405,5 +402,12 @@ fun LeaderboardBottomNavigationBar(
 @Preview(showBackground = true)
 @Composable
 fun LeaderboardPreview() {
-    LeaderboardScreen()
+    LeaderboardScreen(
+        entries = listOf(
+            LeaderboardEntry(userId = "1", username = "Sarah Chen", score = 16850),
+            LeaderboardEntry(userId = "2", username = "Alex Rivera", score = 14200),
+            LeaderboardEntry(userId = "3", username = "Marcus Ng", score = 12940),
+        ),
+        currentUserId = "2"
+    )
 }

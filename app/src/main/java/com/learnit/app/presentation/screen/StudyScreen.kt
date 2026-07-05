@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import com.learnit.app.R
 
 data class StudyDeck(
+    val deckId: String,
     val title: String,
     val cardCount: Int,
     val lastStudied: String,
@@ -49,15 +50,9 @@ fun StudyScreen(
     onProfileClick: () -> Unit = {},
     onCreateDeckClick: () -> Unit = {},
     onStudyNowClick: (String) -> Unit = {},
-    onViewResultClick: (String) -> Unit = {}
+    onViewResultClick: (String) -> Unit = {},
+    decks: List<StudyDeck> = emptyList()
 ) {
-    val decks = listOf(
-        StudyDeck("Quantum Physics", 86, "2h ago", 0.7f, imageRes = R.drawable.quantum_physics, isActive = true),
-        StudyDeck("World History", 245, "1d ago", 0.4f, imageRes = R.drawable.world_history),
-        StudyDeck("Organic Chemistry", 112, "5d ago", 0.25f, imageRes = R.drawable.organic_chemistry),
-        StudyDeck("Introduction to Programming", 50, "today", 1.0f, isCompleted = true)
-    )
-
     Scaffold(
         topBar = { 
             CommonTopAppBar(
@@ -101,8 +96,8 @@ fun StudyScreen(
                     imageRes = deck.imageRes,
                     isActive = deck.isActive,
                     isCompleted = deck.isCompleted,
-                    onStudyClick = { onStudyNowClick(deck.title) },
-                    onViewResultClick = { onViewResultClick(deck.title) }
+                    onStudyClick = { onStudyNowClick(deck.deckId) },
+                    onViewResultClick = { onViewResultClick(deck.deckId) }
                 )
                 Spacer(modifier = Modifier.height(20.dp))
             }
@@ -395,5 +390,10 @@ fun StudyBottomNavigationBar(
 @Preview(showBackground = true)
 @Composable
 fun StudyPreview() {
-    StudyScreen()
+    StudyScreen(
+        decks = listOf(
+            StudyDeck("preview-1", "Quantum Physics", 86, "2h ago", 0.7f, imageRes = R.drawable.quantum_physics, isActive = true),
+            StudyDeck("preview-2", "World History", 245, "1d ago", 0.4f, imageRes = R.drawable.world_history),
+        )
+    )
 }

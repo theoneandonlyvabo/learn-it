@@ -29,7 +29,9 @@ import com.learnit.app.presentation.component.AppLogo
 fun RegisterScreen(
     onBackClick: () -> Unit = {},
     onSignInClick: () -> Unit = {},
-    onSignUpSuccess: () -> Unit = {}
+    onRegister: (email: String, password: String) -> Unit = { _, _ -> },
+    isLoading: Boolean = false,
+    errorMessage: String? = null
 ) {
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -159,11 +161,17 @@ fun RegisterScreen(
                     singleLine = true
                 )
 
+                if (errorMessage != null) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(text = errorMessage, color = Color(0xFFD32F2F), fontSize = 14.sp)
+                }
+
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Sign Up Button
                 Button(
-                    onClick = onSignUpSuccess,
+                    onClick = { onRegister(email, password) },
+                    enabled = !isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(58.dp)
@@ -171,7 +179,11 @@ fun RegisterScreen(
                     shape = RoundedCornerShape(18.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5E5CE6))
                 ) {
-                    Text(text = "Sign Up", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    if (isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)
+                    } else {
+                        Text(text = "Sign Up", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))

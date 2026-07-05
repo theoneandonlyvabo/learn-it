@@ -31,7 +31,9 @@ import com.learnit.app.presentation.component.AppLogo
 @Composable
 fun LoginScreen(
     onRegisterClick: () -> Unit = {},
-    onLoginSuccess: () -> Unit = {},
+    onLogin: (email: String, password: String) -> Unit = { _, _ -> },
+    isLoading: Boolean = false,
+    errorMessage: String? = null,
     logoContent: @Composable () -> Unit = {
         Card(
             modifier = Modifier
@@ -174,24 +176,34 @@ fun LoginScreen(
                 }
             }
 
+            if (errorMessage != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(text = errorMessage, color = Color(0xFFD32F2F), fontSize = 14.sp)
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
 
             // Tombol Sign In dengan shadow yang lebih pop up
             Button(
-                onClick = onLoginSuccess,
+                onClick = { onLogin(email, password) },
+                enabled = !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp)
                     .shadow(
-                        elevation = 16.dp, 
-                        shape = RoundedCornerShape(18.dp), 
+                        elevation = 16.dp,
+                        shape = RoundedCornerShape(18.dp),
                         spotColor = Color(0xFF5E5CE6).copy(alpha = 0.5f),
                         ambientColor = Color(0xFF5E5CE6).copy(alpha = 0.3f)
                     ),
                 shape = RoundedCornerShape(18.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5E5CE6))
             ) {
-                Text(text = "Sign In", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                if (isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)
+                } else {
+                    Text(text = "Sign In", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
             }
 
             Spacer(modifier = Modifier.height(32.dp))

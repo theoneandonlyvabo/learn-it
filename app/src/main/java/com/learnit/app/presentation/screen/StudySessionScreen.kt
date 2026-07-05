@@ -32,112 +32,92 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-/**
- * Data model untuk soal Flashcard
- */
-data class Flashcard(
-    val question: String,
-    val answer: String
-)
+import com.learnit.app.domain.model.SessionUiState
 
 @Composable
 fun StudySessionScreen(
-    totalCards: Int = 20,
+    state: SessionUiState = SessionUiState(),
     onBackClick: () -> Unit = {},
-    onFinishSession: (correct: Int, total: Int) -> Unit = { _, _ -> }
+    onFlip: () -> Unit = {},
+    onNext: () -> Unit = {},
+    onFinish: () -> Unit = {}
 ) {
-    // 1. Data Dummy berdasarkan jumlah yang diminta
-    val flashcards = remember(totalCards) {
-        List(totalCards) { i ->
-            Flashcard(
-                question = "Biology Question #${i + 1}: What is the role of component ${i + 1} in the cell?",
-                answer = "This is the detailed explanation for answer #${i + 1}. Often referred to as the powerhouse, it helps in ATP production."
-            )
-        }
-    }
-
-    // 2. State Management
-    var currentIndex by remember { mutableIntStateOf(0) }
-    var isFlipped by remember { mutableStateOf(false) }
-
-    // Reset status flip setiap kali pindah soal
-    LaunchedEffect(currentIndex) {
-        isFlipped = false
-    }
+    val currentCard = state.currentCard
 
     val rotation by animateFloatAsState(
-        targetValue = if (isFlipped) 180f else 0f,
+        targetValue = if (state.isFlipped) 180f else 0f,
         animationSpec = tween(durationMillis = 600),
         label = "CardFlip"
     )
 
-    val currentCard = flashcards[currentIndex]
-
     Scaffold(
         topBar = {
-            StudyTopBar(onBackClick = onBackClick)
+            StudyTopBar(onBackClick = onBackClick, timeRemaining = state.timeRemaining)
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(Color(0xFFFBFBFF))
-                .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Text(
-                text = "BIOLOGY: CELL STRUCTURES",
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Gray,
-                letterSpacing = 0.8.sp
-            )
+        if (currentCard != null) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .background(Color(0xFFFBFBFF))
+                    .padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(32.dp))
+                Text(
+                    text = currentCard.topic.uppercase(),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Gray,
+                    letterSpacing = 0.8.sp
+                )
 
-            // 3. Tampilkan kartu berdasarkan data saat ini
-            FlashcardCard(
-                rotation = rotation,
-                onFlip = { isFlipped = !isFlipped },
-                question = currentCard.question,
-                answer = currentCard.answer
-            )
+                Spacer(modifier = Modifier.height(32.dp))
 
-            Spacer(modifier = Modifier.height(48.dp))
+                // 3. Tampilkan kartu berdasarkan data saat ini
+                FlashcardCard(
+                    rotation = rotation,
+                    onFlip = onFlip,
+                    question = currentCard.question,
+                    answer = currentCard.answer
+                )
 
-            // 4. Tombol Navigasi Dinamis
-            val isLastCard = currentIndex == flashcards.size - 1
-            NavigationButtons(
-                onPrevious = { if (currentIndex > 0) currentIndex-- },
-                onNext = { 
-                    if (isLastCard) {
-                        onFinishSession(totalCards - 1, totalCards) // Mock correct answers
-                    } else {
-                        currentIndex++ 
-                    }
-                },
-                isPreviousEnabled = currentIndex > 0,
-                isNextEnabled = true, // Always enabled, becomes "Submit" at the end
-                nextButtonText = if (isLastCard) "Submit" else "Next"
-            )
+                Spacer(modifier = Modifier.height(48.dp))
 
-            Spacer(modifier = Modifier.weight(1f))
+                // 4. Tombol Navigasi Dinamis
+                // ponytail: Previous disabled — StudySessionViewModel only exposes nextCard(),
+                // since score is revealed-cards-based and not designed to be undone. Add
+                // previousCard() to the VM if going back becomes a requirement.
+                NavigationButtons(
+                    onPrevious = {},
+                    onNext = { if (state.isLastCard) onFinish() else onNext() },
+                    isPreviousEnabled = false,
+                    isNextEnabled = true, // Always enabled, becomes "Submit" at the end
+                    nextButtonText = if (state.isLastCard) "Submit" else "Next"
+                )
 
-            // 5. Progress Section Otomatis sesuai totalCards
-            ProgressSection(current = currentIndex + 1, total = flashcards.size)
-            
-            Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.weight(1f))
+
+                // 5. Progress Section Otomatis sesuai totalCards
+                ProgressSection(current = state.currentCardIndex + 1, total = state.cards.size)
+
+                Spacer(modifier = Modifier.height(32.dp))
+            }
         }
     }
 }
 
+private fun formatTime(seconds: Int): String {
+    val minutes = seconds / 60
+    val secs = seconds % 60
+    return "%02d:%02d".format(minutes, secs)
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StudyTopBar(onBackClick: () -> Unit) {
+fun StudyTopBar(onBackClick: () -> Unit, timeRemaining: Int = 0) {
     TopAppBar(
         title = {
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
@@ -176,7 +156,7 @@ fun StudyTopBar(onBackClick: () -> Unit) {
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "04:58",
+                        text = formatTime(timeRemaining),
                         color = Color(0xFF5E5CE6),
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp
@@ -411,5 +391,17 @@ fun ProgressSection(current: Int, total: Int) {
 @Preview(showBackground = true)
 @Composable
 fun StudySessionPreview() {
-    StudySessionScreen()
+    StudySessionScreen(
+        state = SessionUiState(
+            cards = listOf(
+                com.learnit.app.domain.model.Flashcard(
+                    id = 1,
+                    question = "What is the powerhouse of the cell?",
+                    answer = "The mitochondria.",
+                    topic = "Biology: Cell Structures"
+                )
+            ),
+            timeRemaining = 298
+        )
+    )
 }
