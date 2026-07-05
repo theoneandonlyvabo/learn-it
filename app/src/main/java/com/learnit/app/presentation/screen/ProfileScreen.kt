@@ -249,7 +249,7 @@ fun StatisticCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.shadow(8.dp, RoundedCornerShape(24.dp), spotColor = Color.LightGray.copy(alpha = 0.4f)),
+        modifier = modifier.shadow(8.dp, RoundedCornerShape(24.dp), spotColor = Color(0xFF5E5CE6).copy(alpha = 0.15f)),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
@@ -313,7 +313,7 @@ fun AchievementCard(achievement: Achievement) {
     Card(
         modifier = Modifier
             .size(110.dp, 130.dp)
-            .shadow(4.dp, RoundedCornerShape(20.dp), spotColor = Color.LightGray.copy(alpha = 0.2f)),
+            .shadow(4.dp, RoundedCornerShape(20.dp), spotColor = Color.LightGray.copy(alpha = 0.15f)),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
@@ -360,7 +360,7 @@ fun ProfileMenuSection(
         modifier = Modifier
             .padding(horizontal = 24.dp)
             .fillMaxWidth()
-            .shadow(4.dp, RoundedCornerShape(24.dp), spotColor = Color.LightGray.copy(alpha = 0.2f)),
+            .shadow(8.dp, RoundedCornerShape(24.dp), spotColor = Color.LightGray.copy(alpha = 0.15f)),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {

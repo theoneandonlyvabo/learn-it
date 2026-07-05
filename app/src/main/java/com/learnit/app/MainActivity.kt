@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
                 var previousScreenForStudySession by remember { mutableStateOf<Screen?>(null) }
                 var previousScreenForNotification by remember { mutableStateOf<Screen?>(null) }
                 var previousScreenForProfile by remember { mutableStateOf<Screen?>(null) }
-                var sessionResultData by remember { mutableStateOf<com.learnit.app.presentation.screen.SessionResult?>(null) }
+                var sessionResultData by remember { mutableStateOf<DeckMasteredResult?>(null) }
                 var selectedCardCount by remember { mutableIntStateOf(5) }
                 
                 var startSplashAnimation by remember { mutableStateOf(false) }
@@ -175,7 +175,17 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = Screen.StudySession 
                                 },
                                 onViewResultClick = { _ -> 
-                                    sessionResultData = com.learnit.app.presentation.screen.SessionResult(50, 50, "5m 20s", 12, 15, 1500, 2000, 500)
+                                    sessionResultData = DeckMasteredResult(
+                                        totalCards = 50,
+                                        completionXp = 250,
+                                        timeBonusXp = 100,
+                                        streakXp = 100,
+                                        gainedXp = 450,
+                                        currentLevel = 15,
+                                        nextLevel = 16,
+                                        currentXp = 1500,
+                                        maxXp = 2000
+                                    )
                                     currentScreen = Screen.Result
                                 }
                             )
@@ -187,19 +197,42 @@ class MainActivity : ComponentActivity() {
                                     if (previousScreenForStudySession == null) currentScreen = Screen.Study
                                 },
                                 onFinishSession = { correct, total ->
-                                    sessionResultData = com.learnit.app.presentation.screen.SessionResult(correct, total, "3m 45s", 8, 12, 1250, 1800, 450)
+                                    sessionResultData = DeckMasteredResult(
+                                        totalCards = total,
+                                        completionXp = 250,
+                                        timeBonusXp = 100,
+                                        streakXp = 100,
+                                        gainedXp = 450,
+                                        currentLevel = 12,
+                                        nextLevel = 13,
+                                        currentXp = 1250,
+                                        maxXp = 1800
+                                    )
                                     currentScreen = Screen.Result
                                 }
                             )
                             Screen.Result -> {
-                                val result = sessionResultData
-                                if (result != null) {
-                                    SessionResultScreen(
-                                        result = result,
-                                        onBackToDecks = { currentScreen = Screen.Study },
-                                        onViewLeaderboard = { currentScreen = Screen.Leaderboard },
+                                val resultData = sessionResultData
+                                if (resultData != null) {
+                                    DeckMasteredScreen(
+                                        result = resultData,
+                                        onBackClick = { 
+                                            previousScreenForStudySession?.let { currentScreen = it }
+                                            if (previousScreenForStudySession == null) currentScreen = Screen.Study
+                                        },
+                                        onBackToDecks = { 
+                                            previousScreenForStudy = null
+                                            currentScreen = Screen.Study 
+                                        },
+                                        onLeaderboardClick = { 
+                                            previousScreenForLeaderboard = null
+                                            currentScreen = Screen.Leaderboard 
+                                        },
                                         onHomeClick = { currentScreen = Screen.Dashboard },
-                                        onFlashcardsClick = { currentScreen = Screen.GenerateFlashcard }
+                                        onFlashcardsClick = { 
+                                            previousScreenForFlashcard = null
+                                            currentScreen = Screen.GenerateFlashcard 
+                                        }
                                     )
                                 }
                             }

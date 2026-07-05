@@ -242,7 +242,7 @@ fun DashboardScreen(
 fun SummaryCard(label: String, value: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit = {}) {
     Card(
         onClick = onClick,
-        modifier = modifier.shadow(8.dp, RoundedCornerShape(20.dp), spotColor = Color.LightGray.copy(alpha = 0.4f)),
+        modifier = modifier.shadow(8.dp, RoundedCornerShape(20.dp), spotColor = Color(0xFF5E5CE6).copy(alpha = 0.15f)),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
@@ -273,7 +273,7 @@ fun QuickActionCard(
 ) {
     Card(
         onClick = onClick,
-        modifier = modifier.shadow(6.dp, RoundedCornerShape(20.dp), spotColor = Color.LightGray.copy(alpha = 0.3f)),
+        modifier = modifier.shadow(8.dp, RoundedCornerShape(20.dp), spotColor = Color(0xFF5E5CE6).copy(alpha = 0.15f)),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
@@ -317,7 +317,7 @@ fun RecentDeckItem(title: String, stats: String, imageRes: Int? = null, onClick:
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 10.dp)
-            .shadow(4.dp, RoundedCornerShape(20.dp), spotColor = Color.LightGray.copy(alpha = 0.2f)),
+            .shadow(4.dp, RoundedCornerShape(20.dp), spotColor = Color.LightGray.copy(alpha = 0.15f)),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {

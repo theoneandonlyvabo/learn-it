@@ -145,7 +145,7 @@ fun TopThreePodium(users: List<LeaderboardUser>) {
         modifier = Modifier
             .padding(horizontal = 24.dp)
             .fillMaxWidth()
-            .shadow(16.dp, RoundedCornerShape(24.dp), spotColor = Color.LightGray.copy(alpha = 0.4f)),
+            .shadow(16.dp, RoundedCornerShape(24.dp), spotColor = Color(0xFF5E5CE6).copy(alpha = 0.2f)),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
@@ -274,7 +274,7 @@ fun LeaderboardItem(user: LeaderboardUser, onClick: () -> Unit) {
         modifier = Modifier
             .padding(horizontal = 24.dp, vertical = 6.dp)
             .fillMaxWidth()
-            .shadow(2.dp, RoundedCornerShape(16.dp), spotColor = Color.LightGray.copy(alpha = 0.2f)),
+            .shadow(4.dp, RoundedCornerShape(16.dp), spotColor = Color.LightGray.copy(alpha = 0.15f)),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (user.isMe) Color(0xFFF5F5FF) else Color.White
