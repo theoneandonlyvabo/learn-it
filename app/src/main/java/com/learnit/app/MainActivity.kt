@@ -25,7 +25,7 @@ import com.learnit.app.presentation.ui.theme.LearnItTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 enum class Screen { 
-    Splash, Login, Register, Dashboard, Study, StudySession, SessionResult, 
+    Splash, Login, Register, Dashboard, Study, StudySession, Result, 
     GenerateFlashcard, Leaderboard, Notification, Profile, HelpSupport, Settings, AppFeatures
 }
 
@@ -40,8 +40,10 @@ class MainActivity : ComponentActivity() {
                 var previousScreenForLeaderboard by remember { mutableStateOf<Screen?>(null) }
                 var previousScreenForStudy by remember { mutableStateOf<Screen?>(null) }
                 var previousScreenForStudySession by remember { mutableStateOf<Screen?>(null) }
+                var previousScreenForNotification by remember { mutableStateOf<Screen?>(null) }
+                var previousScreenForProfile by remember { mutableStateOf<Screen?>(null) }
+                var sessionResultData by remember { mutableStateOf<com.learnit.app.presentation.screen.SessionResult?>(null) }
                 var selectedCardCount by remember { mutableIntStateOf(5) }
-                var sessionResultData by remember { mutableStateOf<SessionResult?>(null) }
                 
                 var startSplashAnimation by remember { mutableStateOf(false) }
                 val splashLogoAlpha by animateFloatAsState(
@@ -58,7 +60,7 @@ class MainActivity : ComponentActivity() {
 
                 val transitionProgress by animateFloatAsState(
                     targetValue = if (isSplash) 0f else 1f,
-                    animationSpec = tween(durationMillis = 1000, easing = EaseInOutCubic),
+                    animationSpec = tween(1000, delayMillis = 1000, easing = EaseInOutCubic),
                     label = "MasterTransition"
                 )
 
@@ -72,20 +74,7 @@ class MainActivity : ComponentActivity() {
                     AnimatedContent(
                         targetState = currentScreen,
                         transitionSpec = {
-                            val isNavigatingToMain = targetState in listOf(
-                                Screen.Dashboard, Screen.Study, Screen.GenerateFlashcard, 
-                                Screen.Leaderboard, Screen.SessionResult, Screen.Notification, 
-                                Screen.Profile, Screen.HelpSupport, Screen.AppFeatures
-                            )
-                            if (isNavigatingToMain) {
-                                (fadeIn(animationSpec = tween(800)) + scaleIn(initialScale = 0.95f))
-                                    .togetherWith(fadeOut(animationSpec = tween(400)))
-                            } else if (targetState == Screen.Register || initialState == Screen.Register) {
-                                slideInHorizontally { if (targetState == Screen.Register) it else -it } + fadeIn() togetherWith
-                                slideOutHorizontally { if (targetState == Screen.Register) -it else it } + fadeOut()
-                            } else {
-                                fadeIn(animationSpec = tween(800)) togetherWith fadeOut(animationSpec = tween(500))
-                            }
+                            EnterTransition.None togetherWith ExitTransition.None
                         },
                         label = "ScreenTransition"
                     ) { screen ->
@@ -128,15 +117,21 @@ class MainActivity : ComponentActivity() {
                                     previousScreenForLeaderboard = Screen.Dashboard
                                     currentScreen = Screen.Leaderboard
                                 },
-                                onNotificationClick = { currentScreen = Screen.Notification },
-                                onProfileClick = { currentScreen = Screen.Profile },
+                                onNotificationClick = { 
+                                    previousScreenForNotification = Screen.Dashboard
+                                    currentScreen = Screen.Notification 
+                                },
+                                onProfileClick = { 
+                                    previousScreenForProfile = Screen.Dashboard
+                                    currentScreen = Screen.Profile 
+                                },
                                 onViewAllDecksClick = { 
                                     previousScreenForStudy = Screen.Dashboard
                                     currentScreen = Screen.Study 
                                 },
                                 onFlashcardsSummaryClick = { 
                                     previousScreenForStudy = Screen.Dashboard
-                                    currentScreen = Screen.Study
+                                    currentScreen = Screen.Study 
                                 },
                                 onLearningScoreSummaryClick = { 
                                     previousScreenForLeaderboard = Screen.Dashboard
@@ -163,8 +158,14 @@ class MainActivity : ComponentActivity() {
                                     previousScreenForStudy = null
                                     currentScreen = Screen.Leaderboard 
                                 },
-                                onNotificationClick = { currentScreen = Screen.Notification },
-                                onProfileClick = { currentScreen = Screen.Profile },
+                                onNotificationClick = { 
+                                    previousScreenForNotification = Screen.Study
+                                    currentScreen = Screen.Notification 
+                                },
+                                onProfileClick = { 
+                                    previousScreenForProfile = Screen.Study
+                                    currentScreen = Screen.Profile 
+                                },
                                 onCreateDeckClick = { 
                                     previousScreenForFlashcard = Screen.Study
                                     currentScreen = Screen.GenerateFlashcard 
@@ -174,8 +175,8 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = Screen.StudySession 
                                 },
                                 onViewResultClick = { _ -> 
-                                    sessionResultData = SessionResult(50, 50, "5m 20s", 12, 15, 1500, 2000, 500)
-                                    currentScreen = Screen.SessionResult
+                                    sessionResultData = com.learnit.app.presentation.screen.SessionResult(50, 50, "5m 20s", 12, 15, 1500, 2000, 500)
+                                    currentScreen = Screen.Result
                                 }
                             )
                             Screen.StudySession -> StudySessionScreen(
@@ -186,11 +187,11 @@ class MainActivity : ComponentActivity() {
                                     if (previousScreenForStudySession == null) currentScreen = Screen.Study
                                 },
                                 onFinishSession = { correct, total ->
-                                    sessionResultData = SessionResult(correct, total, "3m 45s", 8, 12, 1250, 1800, 450)
-                                    currentScreen = Screen.SessionResult
+                                    sessionResultData = com.learnit.app.presentation.screen.SessionResult(correct, total, "3m 45s", 8, 12, 1250, 1800, 450)
+                                    currentScreen = Screen.Result
                                 }
                             )
-                            Screen.SessionResult -> {
+                            Screen.Result -> {
                                 val result = sessionResultData
                                 if (result != null) {
                                     SessionResultScreen(
@@ -220,8 +221,14 @@ class MainActivity : ComponentActivity() {
                                     previousScreenForLeaderboard = null
                                     currentScreen = Screen.Leaderboard 
                                 },
-                                onNotificationClick = { currentScreen = Screen.Notification },
-                                onProfileClick = { currentScreen = Screen.Profile },
+                                onNotificationClick = { 
+                                    previousScreenForNotification = Screen.GenerateFlashcard
+                                    currentScreen = Screen.Notification 
+                                },
+                                onProfileClick = { 
+                                    previousScreenForProfile = Screen.GenerateFlashcard
+                                    currentScreen = Screen.Profile 
+                                },
                                 onGenerateSuccess = { count -> 
                                     selectedCardCount = count
                                     previousScreenForStudySession = Screen.GenerateFlashcard
@@ -247,34 +254,68 @@ class MainActivity : ComponentActivity() {
                                     previousScreenForLeaderboard = null
                                     currentScreen = Screen.Study 
                                 },
-                                onNotificationClick = { currentScreen = Screen.Notification },
-                                onProfileClick = { currentScreen = Screen.Profile }
+                                onNotificationClick = { 
+                                    previousScreenForNotification = Screen.Leaderboard
+                                    currentScreen = Screen.Notification 
+                                },
+                                onProfileClick = { 
+                                    previousScreenForProfile = Screen.Leaderboard
+                                    currentScreen = Screen.Profile 
+                                }
                             )
                             Screen.Notification -> NotificationScreen(
-                                onBackClick = { currentScreen = Screen.Dashboard },
-                                onHomeClick = { currentScreen = Screen.Dashboard },
+                                onBackClick = { 
+                                    previousScreenForNotification?.let { currentScreen = it }
+                                    previousScreenForNotification = null
+                                },
+                                onHomeClick = { 
+                                    previousScreenForNotification = null
+                                    currentScreen = Screen.Dashboard 
+                                },
                                 onFlashcardsClick = { 
                                     previousScreenForFlashcard = null
+                                    previousScreenForNotification = null
                                     currentScreen = Screen.GenerateFlashcard 
                                 },
-                                onStudyClick = { currentScreen = Screen.Study },
+                                onStudyClick = { 
+                                    previousScreenForStudy = null
+                                    previousScreenForNotification = null
+                                    currentScreen = Screen.Study 
+                                },
                                 onLeaderboardClick = { 
                                     previousScreenForLeaderboard = null
+                                    previousScreenForNotification = null
                                     currentScreen = Screen.Leaderboard 
                                 }
                             )
                             Screen.Profile -> ProfileScreen(
-                                onHomeClick = { currentScreen = Screen.Dashboard },
+                                onBackClick = {
+                                    previousScreenForProfile?.let { currentScreen = it }
+                                    previousScreenForProfile = null
+                                },
+                                onHomeClick = { 
+                                    previousScreenForProfile = null
+                                    currentScreen = Screen.Dashboard 
+                                },
                                 onFlashcardsClick = { 
                                     previousScreenForFlashcard = null
+                                    previousScreenForProfile = null
                                     currentScreen = Screen.GenerateFlashcard 
                                 },
-                                onStudyClick = { currentScreen = Screen.Study },
+                                onStudyClick = { 
+                                    previousScreenForStudy = null
+                                    previousScreenForProfile = null
+                                    currentScreen = Screen.Study 
+                                },
                                 onLeaderboardClick = { 
                                     previousScreenForLeaderboard = null
+                                    previousScreenForProfile = null
                                     currentScreen = Screen.Leaderboard 
                                 },
-                                onNotificationClick = { currentScreen = Screen.Notification },
+                                onNotificationClick = { 
+                                    previousScreenForNotification = Screen.Profile
+                                    currentScreen = Screen.Notification 
+                                },
                                 onHelpSupportClick = { currentScreen = Screen.HelpSupport },
                                 onSettingsClick = { currentScreen = Screen.Settings },
                                 onLogout = { currentScreen = Screen.Login }
@@ -291,11 +332,18 @@ class MainActivity : ComponentActivity() {
                                     previousScreenForLeaderboard = null
                                     currentScreen = Screen.Leaderboard 
                                 },
-                                onProfileClick = { currentScreen = Screen.Profile },
+                                onProfileClick = { 
+                                    previousScreenForProfile = Screen.HelpSupport
+                                    currentScreen = Screen.Profile 
+                                },
                                 onAppFeaturesClick = { currentScreen = Screen.AppFeatures }
                             )
                             Screen.AppFeatures -> AppFeaturesScreen(
-                                onBackClick = { currentScreen = Screen.HelpSupport }
+                                onBackClick = { currentScreen = Screen.HelpSupport },
+                                onStartCreatingClick = {
+                                    previousScreenForFlashcard = Screen.AppFeatures
+                                    currentScreen = Screen.GenerateFlashcard
+                                }
                             )
                             Screen.Settings -> SettingsScreen(
                                 onBackClick = { currentScreen = Screen.Profile },

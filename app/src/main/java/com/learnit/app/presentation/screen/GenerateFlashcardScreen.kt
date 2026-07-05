@@ -212,17 +212,6 @@ fun GenerateFormCard(onGenerateClick: (Int) -> Unit) {
                     ),
                     textStyle = LocalTextStyle.current.copy(fontSize = 14.sp)
                 )
-                
-                Row(
-                    modifier = Modifier.align(Alignment.BottomEnd)
-                ) {
-                    IconButton(onClick = { }) {
-                        Icon(Icons.Default.AttachFile, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(20.dp))
-                    }
-                    IconButton(onClick = { }) {
-                        Icon(Icons.Default.History, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(20.dp))
-                    }
-                }
             }
 
             Spacer(modifier = Modifier.height(32.dp))

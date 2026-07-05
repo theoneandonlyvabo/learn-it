@@ -46,6 +46,7 @@ data class Achievement(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
+    onBackClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
     onFlashcardsClick: () -> Unit = {},
     onStudyClick: () -> Unit = {},
@@ -82,7 +83,7 @@ fun ProfileScreen(
                     actionIcon = Icons.Default.Settings,
                     showProfile = false,
                     showBack = true,
-                    onBackClick = onHomeClick,
+                    onBackClick = onBackClick,
                     onActionClick = onSettingsClick,
                     onProfileClick = { /* Already in Profile */ }
                 )

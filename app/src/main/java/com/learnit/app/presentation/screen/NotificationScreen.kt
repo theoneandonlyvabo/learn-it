@@ -136,11 +136,11 @@ fun NotificationScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationTopBar(onBackClick: () -> Unit) {
-    TopAppBar(
+    CenterAlignedTopAppBar(
         title = {
             Text(
                 text = "Notifications",
-                color = Color.Black,
+                color = Color(0xFF323499),
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp
             )
@@ -150,11 +150,11 @@ fun NotificationTopBar(onBackClick: () -> Unit) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.Black
+                    tint = Color(0xFF323499)
                 )
             }
         },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
     )
 }
 
