@@ -29,7 +29,7 @@ import com.learnit.app.presentation.component.AppLogo
 fun RegisterScreen(
     onBackClick: () -> Unit = {},
     onSignInClick: () -> Unit = {},
-    onRegister: (email: String, password: String) -> Unit = { _, _ -> },
+    onRegister: (name: String, email: String, password: String) -> Unit = { _, _, _ -> },
     isLoading: Boolean = false,
     errorMessage: String? = null
 ) {
@@ -179,7 +179,7 @@ fun RegisterScreen(
 
                 // Sign Up Button
                 Button(
-                    onClick = { onRegister(email, password) },
+                    onClick = { onRegister(fullName, email, password) },
                     enabled = !isLoading,
                     modifier = Modifier
                         .fillMaxWidth()

@@ -24,6 +24,13 @@ class AuthViewModel @Inject constructor(
     val currentEmail: String?
         get() = repository.getCurrentUser()?.email
 
+    // Display name from registration; falls back to the email's local part for older
+    // accounts (or Google users) that have no displayName set.
+    val currentName: String?
+        get() = repository.getCurrentUser()?.let { user ->
+            user.displayName?.takeIf { it.isNotBlank() } ?: user.email?.substringBefore("@")
+        }
+
     fun login(email: String, password: String) {
         if (email.isBlank() || password.isBlank()) {
             _authState.value = ApiState.Error("Email and password cannot be empty")
@@ -38,14 +45,14 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun register(email: String, password: String) {
-        if (email.isBlank() || password.isBlank()) {
-            _authState.value = ApiState.Error("Email and password cannot be empty")
+    fun register(email: String, password: String, name: String) {
+        if (name.isBlank() || email.isBlank() || password.isBlank()) {
+            _authState.value = ApiState.Error("Name, email and password cannot be empty")
             return
         }
         viewModelScope.launch {
             _authState.value = ApiState.Loading
-            repository.register(email, password).fold(
+            repository.register(email, password, name.trim()).fold(
                 onSuccess = { _authState.value = ApiState.Success(Unit) },
                 onFailure = { e -> _authState.value = ApiState.Error(e.message ?: "Registration failed") }
             )

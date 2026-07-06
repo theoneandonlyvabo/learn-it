@@ -36,7 +36,7 @@ class LeaderboardViewModelTest {
     }
 
     private class FakeAuthRepository(private val user: FirebaseUser?) : AuthRepository {
-        override suspend fun register(email: String, password: String): Result<FirebaseUser> =
+        override suspend fun register(email: String, password: String, displayName: String): Result<FirebaseUser> =
             Result.failure(Exception("fake"))
         override suspend fun login(email: String, password: String): Result<FirebaseUser> =
             Result.failure(Exception("fake"))

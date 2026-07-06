@@ -31,7 +31,9 @@ class LeaderboardRepositoryImpl @Inject constructor(
             .limit(50)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    close(error)
+                    // ponytail: permission/offline errors degrade to an empty board, never crash the app.
+                    // WhileSubscribed re-subscribes and retries once auth/rules allow the read.
+                    trySend(emptyList())
                     return@addSnapshotListener
                 }
                 val entries = snapshot?.documents?.mapNotNull { doc ->

@@ -29,7 +29,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.learnit.app.presentation.component.AppBottomNavBar
 import com.learnit.app.presentation.component.CommonTopAppBar
+import com.learnit.app.presentation.component.NavTab
 
 data class UserProfile(
     val name: String,
@@ -50,20 +52,22 @@ fun ProfileScreen(
     onHomeClick: () -> Unit = {},
     onFlashcardsClick: () -> Unit = {},
     onStudyClick: () -> Unit = {},
+    onCreateClick: () -> Unit = {},
     onLeaderboardClick: () -> Unit = {},
     onNotificationClick: () -> Unit = {},
     onHelpSupportClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
     onLogout: () -> Unit = {},
+    name: String? = null,
     email: String? = null
 ) {
-    // ponytail: name/level/xp/achievements/stats are static placeholders — no backend tracks
-    // display name, XP, streaks, or achievements yet. Only `email` below is real. Wire these to
-    // a real profile/stats source if that data starts being persisted.
-    val user = remember {
+    // ponytail: level/xp/achievements/stats are static placeholders — no backend tracks
+    // XP, streaks, or achievements yet. `name` and `email` below are real (from the account).
+    // Wire the rest to a real profile/stats source if that data starts being persisted.
+    val user = remember(name) {
         mutableStateOf(
             UserProfile(
-                name = "Kevin Wijaya",
+                name = name ?: "Learner",
                 level = 12,
                 xp = 1250
             )
@@ -94,14 +98,14 @@ fun ProfileScreen(
             }
         },
         bottomBar = {
-            Box {
-                ProfileBottomNavigationBar(
-                    onHomeClick = onHomeClick,
-                    onFlashcardsClick = onFlashcardsClick,
-                    onStudyClick = onStudyClick,
-                    onLeaderboardClick = onLeaderboardClick
-                )
-            }
+            AppBottomNavBar(
+                current = NavTab.PROFILE,
+                onHome = onHomeClick,
+                onFlashcards = onFlashcardsClick,
+                onCreate = onCreateClick,
+                onLeaderboard = onLeaderboardClick,
+                onProfile = { }
+            )
         }
     ) { paddingValues ->
         LazyColumn(
@@ -437,48 +441,6 @@ fun ProfileMenuItem(
             color = if (color == Color.Red) Color.Red else Color(0xFF2D2D2D)
         )
         Icon(imageVector = Icons.Default.ChevronRight, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(20.dp))
-    }
-}
-
-@Composable
-fun ProfileBottomNavigationBar(
-    onHomeClick: () -> Unit,
-    onFlashcardsClick: () -> Unit,
-    onStudyClick: () -> Unit,
-    onLeaderboardClick: () -> Unit
-) {
-    NavigationBar(
-        containerColor = Color.White,
-        tonalElevation = 8.dp
-    ) {
-        NavigationBarItem(
-            selected = false,
-            onClick = onHomeClick,
-            icon = { Icon(Icons.Default.Home, contentDescription = null, tint = Color.Gray) },
-            label = { Text("Home", color = Color.Gray) },
-            colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = onFlashcardsClick,
-            icon = { Icon(Icons.Default.Style, contentDescription = null, tint = Color.Gray) },
-            label = { Text("Flashcards", color = Color.Gray) },
-            colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = onStudyClick,
-            icon = { Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = null, tint = Color.Gray) },
-            label = { Text("Study", color = Color.Gray) },
-            colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = onLeaderboardClick,
-            icon = { Icon(Icons.Default.BarChart, contentDescription = null, tint = Color.Gray) },
-            label = { Text("Leaderboard", color = Color.Gray) },
-            colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-        )
     }
 }
 

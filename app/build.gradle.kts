@@ -59,6 +59,14 @@ android {
                 ?.trim() ?: ""
         } else ""
         buildConfigField("String", "GROQ_API_KEY", "\"${groqApiKey}\"")
+
+        val unsplashAccessKey = if (envFile.exists()) {
+            envFile.readLines()
+                .firstOrNull { it.startsWith("UNSPLASH_ACCESS_KEY=") }
+                ?.substringAfter("=")
+                ?.trim() ?: ""
+        } else ""
+        buildConfigField("String", "UNSPLASH_ACCESS_KEY", "\"${unsplashAccessKey}\"")
     }
 
     buildTypes {

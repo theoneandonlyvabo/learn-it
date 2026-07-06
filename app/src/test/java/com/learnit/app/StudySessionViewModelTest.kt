@@ -1,6 +1,8 @@
 package com.learnit.app
 
 import com.google.firebase.auth.FirebaseUser
+import com.learnit.app.data.local.dao.StudySessionDao
+import com.learnit.app.data.local.entity.StudySessionEntity
 import com.learnit.app.data.repository.AuthRepository
 import com.learnit.app.data.repository.LeaderboardRepository
 import com.learnit.app.domain.model.Flashcard
@@ -33,12 +35,16 @@ class StudySessionViewModelTest {
             override fun getLeaderboard(): Flow<List<LeaderboardEntry>> = emptyFlow()
         },
         authRepository = object : AuthRepository {
-            override suspend fun register(email: String, password: String): Result<FirebaseUser> =
+            override suspend fun register(email: String, password: String, displayName: String): Result<FirebaseUser> =
                 Result.failure(Exception("fake"))
             override suspend fun login(email: String, password: String): Result<FirebaseUser> =
                 Result.failure(Exception("fake"))
             override fun getCurrentUser(): FirebaseUser? = null
             override fun logout() {}
+        },
+        sessionDao = object : StudySessionDao {
+            override suspend fun insertSession(session: StudySessionEntity) {}
+            override fun getAllSessions(): Flow<List<StudySessionEntity>> = emptyFlow()
         }
     )
 

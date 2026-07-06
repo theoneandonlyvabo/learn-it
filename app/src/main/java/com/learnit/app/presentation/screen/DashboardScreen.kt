@@ -1,6 +1,10 @@
 package com.learnit.app.presentation.screen
 
 import androidx.compose.foundation.Image
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.getValue
+import coil.compose.AsyncImage
+import com.learnit.app.domain.model.DeckSummary
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -26,7 +30,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.learnit.app.R
+import com.learnit.app.presentation.component.AppBottomNavBar
 import com.learnit.app.presentation.component.CommonTopAppBar
+import com.learnit.app.presentation.component.NavTab
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,7 +47,13 @@ fun DashboardScreen(
     onProfileClick: () -> Unit = {},
     onViewAllDecksClick: () -> Unit = {},
     onFlashcardsSummaryClick: () -> Unit = {},
-    onLearningScoreSummaryClick: () -> Unit = {}
+    onLearningScoreSummaryClick: () -> Unit = {},
+    userName: String? = null,
+    flashcardCount: Int = 0,
+    learningScore: Int = 0,
+    decks: List<DeckSummary> = emptyList(),
+    onDeckClick: (DeckSummary) -> Unit = {},
+    resolveDeckImage: suspend (topic: String) -> String? = { null }
 ) {
     Scaffold(
         topBar = { 
@@ -51,56 +63,14 @@ fun DashboardScreen(
             ) 
         },
         bottomBar = {
-            NavigationBar(
-                containerColor = Color.White,
-                tonalElevation = 8.dp,
-                modifier = Modifier.height(80.dp)
-            ) {
-                NavigationBarItem(
-                    selected = true,
-                    onClick = { },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Home,
-                            contentDescription = null,
-                            tint = Color(0xFF5E5CE6),
-                            modifier = Modifier.size(26.dp).offset(y = (-4).dp)
-                        )
-                    },
-                    label = { 
-                        Text(
-                            text = "Home", 
-                            fontWeight = FontWeight.Bold, 
-                            color = Color(0xFF5E5CE6),
-                            modifier = Modifier.offset(y = (-2).dp)
-                        ) 
-                    },
-                    colors = NavigationBarItemDefaults.colors(
-                        indicatorColor = Color.Transparent
-                    )
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = onFlashcardsClick,
-                    icon = { Icon(Icons.Default.Style, contentDescription = null, tint = Color.Gray) },
-                    label = { Text("Flashcards", color = Color.Gray) },
-                    colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = onStudyClick,
-                    icon = { Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = null, tint = Color.Gray) },
-                    label = { Text("Study", color = Color.Gray) },
-                    colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = onLeaderboardClick,
-                    icon = { Icon(Icons.Default.BarChart, contentDescription = null, tint = Color.Gray) },
-                    label = { Text("Leaderboard", color = Color.Gray) },
-                    colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-                )
-            }
+            AppBottomNavBar(
+                current = NavTab.HOME,
+                onHome = { },
+                onFlashcards = onFlashcardsClick,
+                onCreate = onCreateFlashcardClick,
+                onLeaderboard = onLeaderboardClick,
+                onProfile = onProfileClick
+            )
         }
     ) { paddingValues ->
         Column(
@@ -112,7 +82,7 @@ fun DashboardScreen(
                 .padding(horizontal = 20.dp, vertical = 20.dp)
         ) {
             Text(
-                text = "Hello, Kevin",
+                text = "Hello, ${userName ?: "there"}",
                 fontSize = 34.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = Color.Black,
@@ -133,14 +103,14 @@ fun DashboardScreen(
             ) {
                 SummaryCard(
                     label = "FLASHCARDS",
-                    value = "124",
+                    value = flashcardCount.toString(),
                     icon = Icons.Default.Collections,
                     modifier = Modifier.weight(1f),
                     onClick = onFlashcardsSummaryClick
                 )
                 SummaryCard(
                     label = "LEARNING SCORE",
-                    value = "92%",
+                    value = "%,d pts".format(learningScore),
                     icon = Icons.Default.Timeline,
                     modifier = Modifier.weight(1f),
                     onClick = onLearningScoreSummaryClick
@@ -161,8 +131,10 @@ fun DashboardScreen(
             QuickActionCard(
                 label = "Create Flashcard",
                 icon = Icons.Default.Add,
-                iconContainerColor = Color(0xFFE8E8FF),
-                iconColor = Color(0xFF5E5CE6),
+                iconContainerColor = Color.White.copy(alpha = 0.22f),
+                iconColor = Color.White,
+                containerColor = Color(0xFF5E5CE6),
+                labelColor = Color.White,
                 modifier = Modifier.fillMaxWidth(),
                 onClick = onCreateFlashcardClick
             )
@@ -213,25 +185,25 @@ fun DashboardScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            RecentDeckItem(
-                title = "Advanced Neurology", 
-                stats = "48 Cards • Last studied 2h ago", 
-                imageRes = R.drawable.advanced_neurology,
-                onClick = onStudyClick
-            )
-            RecentDeckItem(
-                title = "Modern Architecture", 
-                stats = "32 Cards • Last studied yesterday", 
-                imageRes = R.drawable.modern_architecture,
-                onClick = onStudyClick
-            )
-            RecentDeckItem(
-                title = "Classical Mechanics", 
-                stats = "24 Cards • Last studied 3 days ago", 
-                imageRes = R.drawable.classical_mechanics,
-                onClick = onStudyClick
-            )
-            
+            if (decks.isEmpty()) {
+                Text(
+                    text = "No decks yet. Generate your first flashcards to get started.",
+                    fontSize = 14.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(vertical = 16.dp)
+                )
+            } else {
+                decks.forEach { deck ->
+                    RecentDeckItem(
+                        title = deck.title,
+                        stats = "${deck.cardCount} Cards • ${deck.lastStudied}",
+                        topic = deck.title,
+                        resolveDeckImage = resolveDeckImage,
+                        onClick = { onDeckClick(deck) }
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
@@ -269,13 +241,15 @@ fun QuickActionCard(
     iconColor: Color,
     modifier: Modifier = Modifier,
     isCompact: Boolean = false,
+    containerColor: Color = Color.White,
+    labelColor: Color = Color(0xFF323499),
     onClick: () -> Unit = {}
 ) {
     Card(
         onClick = onClick,
         modifier = modifier.shadow(8.dp, RoundedCornerShape(20.dp), spotColor = Color(0xFF5E5CE6).copy(alpha = 0.15f)),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = containerColor)
     ) {
         if (!isCompact) {
             Row(
@@ -289,7 +263,7 @@ fun QuickActionCard(
                     Icon(imageVector = icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(24.dp))
                 }
                 Spacer(modifier = Modifier.width(24.dp))
-                Text(text = label, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF323499))
+                Text(text = label, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = labelColor)
             }
         } else {
             Column(
@@ -311,7 +285,17 @@ fun QuickActionCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecentDeckItem(title: String, stats: String, imageRes: Int? = null, onClick: () -> Unit = {}) {
+fun RecentDeckItem(
+    title: String,
+    stats: String,
+    imageRes: Int? = null,
+    topic: String? = null,
+    resolveDeckImage: suspend (topic: String) -> String? = { null },
+    onClick: () -> Unit = {}
+) {
+    val imageUrl by produceState<String?>(initialValue = null, topic) {
+        value = topic?.let { resolveDeckImage(it) }
+    }
     Card(
         onClick = onClick,
         modifier = Modifier
@@ -332,15 +316,20 @@ fun RecentDeckItem(title: String, stats: String, imageRes: Int? = null, onClick:
                     .background(Color(0xFFF5F5F9)),
                 contentAlignment = Alignment.Center
             ) {
-                if (imageRes != null) {
-                    Image(
+                when {
+                    imageRes != null -> Image(
                         painter = painterResource(id = imageRes),
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
-                } else {
-                    Icon(
+                    imageUrl != null -> AsyncImage(
+                        model = imageUrl,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                    else -> Icon(
                         imageVector = Icons.Default.Collections,
                         contentDescription = null,
                         modifier = Modifier.size(28.dp),

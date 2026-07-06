@@ -24,6 +24,7 @@ import com.learnit.app.presentation.component.AppLogo
 import com.learnit.app.presentation.screen.*
 import com.learnit.app.presentation.ui.theme.LearnItTheme
 import com.learnit.app.ui.viewmodel.AuthViewModel
+import com.learnit.app.ui.viewmodel.DashboardViewModel
 import com.learnit.app.ui.viewmodel.FlashcardViewModel
 import com.learnit.app.ui.viewmodel.LeaderboardViewModel
 import com.learnit.app.ui.viewmodel.StudySessionViewModel
@@ -56,8 +57,10 @@ class MainActivity : ComponentActivity() {
                 val flashcardVm: FlashcardViewModel = hiltViewModel()
                 val studyVm: StudySessionViewModel = hiltViewModel()
                 val leaderboardVm: LeaderboardViewModel = hiltViewModel()
+                val dashboardVm: DashboardViewModel = hiltViewModel()
 
                 val authState by authVm.authState.collectAsState()
+                val dashboardState by dashboardVm.uiState.collectAsState()
                 val flashcards by flashcardVm.flashcards.collectAsState()
                 val generateState by flashcardVm.generateState.collectAsState()
                 val sessionState by studyVm.uiState.collectAsState()
@@ -146,7 +149,7 @@ class MainActivity : ComponentActivity() {
                                 RegisterScreen(
                                     onBackClick = { currentScreen = Screen.Login },
                                     onSignInClick = { currentScreen = Screen.Login },
-                                    onRegister = { email, password -> authVm.register(email, password) },
+                                    onRegister = { name, email, password -> authVm.register(email, password, name) },
                                     isLoading = authState is ApiState.Loading,
                                     errorMessage = (authState as? ApiState.Error)?.errorMsg
                                 )
@@ -160,9 +163,9 @@ class MainActivity : ComponentActivity() {
                                     previousScreenForStudy = Screen.Dashboard
                                     currentScreen = Screen.Study
                                 },
-                                onFlashcardsClick = { 
-                                    previousScreenForFlashcard = null
-                                    currentScreen = Screen.GenerateFlashcard 
+                                onFlashcardsClick = {
+                                    previousScreenForStudy = null
+                                    currentScreen = Screen.Study
                                 },
                                 onCreateFlashcardClick = {
                                     previousScreenForFlashcard = Screen.Dashboard
@@ -192,10 +195,19 @@ class MainActivity : ComponentActivity() {
                                     previousScreenForStudy = Screen.Dashboard
                                     currentScreen = Screen.Study 
                                 },
-                                onLearningScoreSummaryClick = { 
+                                onLearningScoreSummaryClick = {
                                     previousScreenForLeaderboard = Screen.Dashboard
-                                    currentScreen = Screen.Leaderboard 
-                                }
+                                    currentScreen = Screen.Leaderboard
+                                },
+                                userName = authVm.currentName,
+                                flashcardCount = dashboardState.flashcardCount,
+                                learningScore = dashboardState.learningScore,
+                                decks = dashboardState.decks,
+                                onDeckClick = {
+                                    previousScreenForStudy = Screen.Dashboard
+                                    currentScreen = Screen.Study
+                                },
+                                resolveDeckImage = dashboardVm::imageUrlFor
                             )
                             Screen.Study -> {
                                 val decksList = remember(flashcards) {
@@ -221,11 +233,7 @@ class MainActivity : ComponentActivity() {
                                         previousScreenForStudy = null
                                         currentScreen = Screen.Dashboard
                                     },
-                                    onFlashcardsClick = {
-                                        previousScreenForFlashcard = null
-                                        previousScreenForStudy = null
-                                        currentScreen = Screen.GenerateFlashcard
-                                    },
+                                    onFlashcardsClick = { }, // already on the Flashcards tab
                                     onLeaderboardClick = {
                                         previousScreenForLeaderboard = null
                                         previousScreenForStudy = null
@@ -362,8 +370,12 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = Screen.Dashboard
                                 },
                                 onFlashcardsClick = {
-                                    previousScreenForFlashcard = null
+                                    previousScreenForStudy = null
                                     previousScreenForLeaderboard = null
+                                    currentScreen = Screen.Study
+                                },
+                                onCreateClick = {
+                                    previousScreenForFlashcard = Screen.Leaderboard
                                     currentScreen = Screen.GenerateFlashcard
                                 },
                                 onStudyClick = {
@@ -415,20 +427,24 @@ class MainActivity : ComponentActivity() {
                                     previousScreenForProfile = null
                                     currentScreen = Screen.Dashboard 
                                 },
-                                onFlashcardsClick = { 
-                                    previousScreenForFlashcard = null
-                                    previousScreenForProfile = null
-                                    currentScreen = Screen.GenerateFlashcard 
-                                },
-                                onStudyClick = { 
+                                onFlashcardsClick = {
                                     previousScreenForStudy = null
                                     previousScreenForProfile = null
-                                    currentScreen = Screen.Study 
+                                    currentScreen = Screen.Study
                                 },
-                                onLeaderboardClick = { 
+                                onCreateClick = {
+                                    previousScreenForFlashcard = Screen.Profile
+                                    currentScreen = Screen.GenerateFlashcard
+                                },
+                                onStudyClick = {
+                                    previousScreenForStudy = null
+                                    previousScreenForProfile = null
+                                    currentScreen = Screen.Study
+                                },
+                                onLeaderboardClick = {
                                     previousScreenForLeaderboard = null
                                     previousScreenForProfile = null
-                                    currentScreen = Screen.Leaderboard 
+                                    currentScreen = Screen.Leaderboard
                                 },
                                 onNotificationClick = { 
                                     previousScreenForNotification = Screen.Profile
@@ -440,6 +456,7 @@ class MainActivity : ComponentActivity() {
                                     authVm.logout()
                                     currentScreen = Screen.Login
                                 },
+                                name = authVm.currentName,
                                 email = authVm.currentEmail
                             )
                             Screen.HelpSupport -> HelpSupportScreen(
@@ -472,7 +489,9 @@ class MainActivity : ComponentActivity() {
                                 onHomeClick = { currentScreen = Screen.Dashboard },
                                 onFlashcardsClick = { currentScreen = Screen.GenerateFlashcard },
                                 onStudyClick = { currentScreen = Screen.Study },
-                                onLeaderboardClick = { currentScreen = Screen.Leaderboard }
+                                onLeaderboardClick = { currentScreen = Screen.Leaderboard },
+                                initialName = authVm.currentName,
+                                initialEmail = authVm.currentEmail
                             )
                         }
                     }

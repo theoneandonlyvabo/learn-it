@@ -1,6 +1,8 @@
 package com.learnit.app.presentation.screen
 
+import com.learnit.app.presentation.component.AppBottomNavBar
 import com.learnit.app.presentation.component.CommonTopAppBar
+import com.learnit.app.presentation.component.NavTab
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -47,6 +49,7 @@ fun LeaderboardScreen(
     onHomeClick: () -> Unit = {},
     onFlashcardsClick: () -> Unit = {},
     onStudyClick: () -> Unit = {},
+    onCreateClick: () -> Unit = {},
     onNotificationClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
     entries: List<LeaderboardEntry> = emptyList(),
@@ -77,10 +80,13 @@ fun LeaderboardScreen(
             ) 
         },
         bottomBar = {
-            LeaderboardBottomNavigationBar(
-                onHomeClick = onHomeClick,
-                onFlashcardsClick = onFlashcardsClick,
-                onStudyClick = onStudyClick
+            AppBottomNavBar(
+                current = NavTab.LEADERBOARD,
+                onHome = onHomeClick,
+                onFlashcards = onFlashcardsClick,
+                onCreate = onCreateClick,
+                onLeaderboard = { },
+                onProfile = onProfileClick
             )
         }
     ) { paddingValues ->
@@ -342,62 +348,6 @@ fun LeaderboardItem(user: LeaderboardUser, onClick: () -> Unit) {
     }
 }
 
-
-@Composable
-fun LeaderboardBottomNavigationBar(
-    onHomeClick: () -> Unit,
-    onFlashcardsClick: () -> Unit,
-    onStudyClick: () -> Unit
-) {
-    NavigationBar(
-        containerColor = Color.White,
-        tonalElevation = 8.dp,
-        modifier = Modifier.height(80.dp)
-    ) {
-        NavigationBarItem(
-            selected = false,
-            onClick = onHomeClick,
-            icon = { Icon(Icons.Default.Home, contentDescription = null, tint = Color.Gray) },
-            label = { Text("Home", color = Color.Gray) },
-            colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = onFlashcardsClick,
-            icon = { Icon(Icons.Default.Style, contentDescription = null, tint = Color.Gray) },
-            label = { Text("Flashcards", color = Color.Gray) },
-            colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = onStudyClick,
-            icon = { Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = null, tint = Color.Gray) },
-            label = { Text("Study", color = Color.Gray) },
-            colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-        )
-        NavigationBarItem(
-            selected = true,
-            onClick = { },
-            icon = { 
-                Icon(
-                    imageVector = Icons.Default.BarChart, 
-                    contentDescription = null, 
-                    tint = Color(0xFF5E5CE6),
-                    modifier = Modifier.size(26.dp).offset(y = (-4).dp)
-                ) 
-            },
-            label = { 
-                Text(
-                    text = "Leaderboard", 
-                    fontWeight = FontWeight.Bold, 
-                    color = Color(0xFF5E5CE6),
-                    modifier = Modifier.offset(y = (-2).dp)
-                ) 
-            },
-            colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-        )
-    }
-}
 
 @Preview(showBackground = true)
 @Composable

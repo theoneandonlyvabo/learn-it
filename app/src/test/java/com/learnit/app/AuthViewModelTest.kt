@@ -29,7 +29,7 @@ class AuthViewModelTest {
         var registerResult: Result<FirebaseUser> = Result.failure(Exception("fake"))
     ) : AuthRepository {
         var loggedOut = false
-        override suspend fun register(email: String, password: String): Result<FirebaseUser> = registerResult
+        override suspend fun register(email: String, password: String, displayName: String): Result<FirebaseUser> = registerResult
         override suspend fun login(email: String, password: String): Result<FirebaseUser> = loginResult
         override fun getCurrentUser(): FirebaseUser? = null
         override fun logout() { loggedOut = true }
@@ -61,15 +61,22 @@ class AuthViewModelTest {
     @Test
     fun `register with blank password sets Error without calling repository`() {
         val vm = AuthViewModel(FakeAuthRepository())
-        vm.register("user@test.com", "")
+        vm.register("user@test.com", "", "Test User")
         val state = vm.authState.value
         assertTrue(state is ApiState.Error)
     }
 
     @Test
+    fun `register with blank name sets Error without calling repository`() {
+        val vm = AuthViewModel(FakeAuthRepository())
+        vm.register("user@test.com", "password", "")
+        assertTrue(vm.authState.value is ApiState.Error)
+    }
+
+    @Test
     fun `register failure maps to Error with message`() {
         val vm = AuthViewModel(FakeAuthRepository(registerResult = Result.failure(Exception("email in use"))))
-        vm.register("user@test.com", "password")
+        vm.register("user@test.com", "password", "Test User")
         val state = vm.authState.value
         assertTrue(state is ApiState.Error)
         assertEquals("email in use", (state as ApiState.Error).errorMsg)

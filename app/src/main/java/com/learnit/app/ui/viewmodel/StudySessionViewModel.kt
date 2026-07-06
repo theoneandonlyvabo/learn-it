@@ -2,6 +2,8 @@ package com.learnit.app.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.learnit.app.data.local.dao.StudySessionDao
+import com.learnit.app.data.local.entity.StudySessionEntity
 import com.learnit.app.data.repository.AuthRepository
 import com.learnit.app.data.repository.LeaderboardRepository
 import com.learnit.app.domain.model.Flashcard
@@ -22,15 +24,20 @@ import javax.inject.Inject
 @HiltViewModel
 class StudySessionViewModel @Inject constructor(
     private val leaderboardRepository: LeaderboardRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val sessionDao: StudySessionDao
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SessionUiState())
     val uiState: StateFlow<SessionUiState> = _uiState.asStateFlow()
 
     private var timerJob: Job? = null
+    private var currentDeckId: String = ""
+    private var sessionDuration: Int = 0
 
     fun startSession(cards: List<Flashcard>, durationSeconds: Int) {
+        currentDeckId = cards.firstOrNull()?.deckId ?: ""
+        sessionDuration = durationSeconds
         _uiState.value = SessionUiState(
             cards = cards,
             timeRemaining = durationSeconds,
@@ -78,7 +85,22 @@ class StudySessionViewModel @Inject constructor(
             timeRemaining = state.timeRemaining
         )
         _uiState.update { it.copy(score = finalScore, status = SessionStatus.FINISHED) }
+        persistSession(finalScore, state.timeRemaining)
         uploadScore(finalScore)
+    }
+
+    private fun persistSession(score: Int, timeRemaining: Int) {
+        viewModelScope.launch {
+            runCatching {
+                sessionDao.insertSession(
+                    StudySessionEntity(
+                        deckId = currentDeckId,
+                        score = score,
+                        durationSeconds = (sessionDuration - timeRemaining).coerceAtLeast(0)
+                    )
+                )
+            }
+        }
     }
 
     private fun uploadScore(score: Int) {
@@ -87,7 +109,8 @@ class StudySessionViewModel @Inject constructor(
             runCatching {
                 leaderboardRepository.uploadScore(
                     userId = user.uid,
-                    username = user.email ?: user.uid,
+                    username = user.displayName?.takeIf { it.isNotBlank() }
+                        ?: user.email?.substringBefore("@") ?: user.uid,
                     score = score
                 )
             }

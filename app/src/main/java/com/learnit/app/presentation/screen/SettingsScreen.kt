@@ -40,11 +40,13 @@ fun SettingsScreen(
     onFlashcardsClick: () -> Unit = {},
     onStudyClick: () -> Unit = {},
     onLeaderboardClick: () -> Unit = {},
-    onEditPhotoClick: () -> Unit = {}
+    onEditPhotoClick: () -> Unit = {},
+    initialName: String? = null,
+    initialEmail: String? = null
 ) {
     val context = LocalContext.current
-    var fullName by remember { mutableStateOf("Kevin Wijaya") }
-    var email by remember { mutableStateOf("kevin@gmail.com") }
+    var fullName by remember { mutableStateOf(initialName ?: "Learner") }
+    var email by remember { mutableStateOf(initialEmail ?: "") }
     var dailyGoal by remember { mutableIntStateOf(45) }
     var studyReminderEnabled by remember { mutableStateOf(true) }
     var focusModeEnabled by remember { mutableStateOf(false) }
