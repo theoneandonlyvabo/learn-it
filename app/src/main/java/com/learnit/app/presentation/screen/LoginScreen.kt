@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -81,7 +79,6 @@ fun LoginScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
                 .imePadding()
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -125,7 +122,10 @@ fun LoginScreen(
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = Color(0xFFE0E0E0),
-                    focusedBorderColor = Color(0xFF5E5CE6)
+                    focusedBorderColor = Color(0xFF5E5CE6),
+                    focusedTextColor = Color(0xFF1A1A1A),
+                    unfocusedTextColor = Color(0xFF1A1A1A),
+                    cursorColor = Color(0xFF5E5CE6)
                 ),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 singleLine = true
@@ -151,7 +151,10 @@ fun LoginScreen(
                 },
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = Color(0xFFE0E0E0),
-                    focusedBorderColor = Color(0xFF5E5CE6)
+                    focusedBorderColor = Color(0xFF5E5CE6),
+                    focusedTextColor = Color(0xFF1A1A1A),
+                    unfocusedTextColor = Color(0xFF1A1A1A),
+                    cursorColor = Color(0xFF5E5CE6)
                 ),
                 singleLine = true
             )

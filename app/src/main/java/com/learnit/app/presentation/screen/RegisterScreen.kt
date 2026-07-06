@@ -113,7 +113,10 @@ fun RegisterScreen(
                     shape = RoundedCornerShape(16.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         unfocusedBorderColor = Color(0xFFE0E0E0),
-                        focusedBorderColor = Color(0xFF5E5CE6)
+                        focusedBorderColor = Color(0xFF5E5CE6),
+                        focusedTextColor = Color(0xFF1A1A1A),
+                        unfocusedTextColor = Color(0xFF1A1A1A),
+                        cursorColor = Color(0xFF5E5CE6)
                     ),
                     singleLine = true
                 )
@@ -129,7 +132,10 @@ fun RegisterScreen(
                     shape = RoundedCornerShape(16.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         unfocusedBorderColor = Color(0xFFE0E0E0),
-                        focusedBorderColor = Color(0xFF5E5CE6)
+                        focusedBorderColor = Color(0xFF5E5CE6),
+                        focusedTextColor = Color(0xFF1A1A1A),
+                        unfocusedTextColor = Color(0xFF1A1A1A),
+                        cursorColor = Color(0xFF5E5CE6)
                     ),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     singleLine = true
@@ -156,7 +162,10 @@ fun RegisterScreen(
                     },
                     colors = OutlinedTextFieldDefaults.colors(
                         unfocusedBorderColor = Color(0xFFE0E0E0),
-                        focusedBorderColor = Color(0xFF5E5CE6)
+                        focusedBorderColor = Color(0xFF5E5CE6),
+                        focusedTextColor = Color(0xFF1A1A1A),
+                        unfocusedTextColor = Color(0xFF1A1A1A),
+                        cursorColor = Color(0xFF5E5CE6)
                     ),
                     singleLine = true
                 )
