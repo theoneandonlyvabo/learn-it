@@ -56,7 +56,7 @@ fun AppBottomNavBar(
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(80.dp + bottomPadding),
+                .height(60.dp + bottomPadding),
             color = Color.White,
             shadowElevation = 16.dp,
             shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
@@ -64,7 +64,7 @@ fun AppBottomNavBar(
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = bottomPadding + 8.dp)
+                    .padding(bottom = bottomPadding)
                     .padding(horizontal = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -82,13 +82,12 @@ fun AppBottomNavBar(
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    // We lift the entire column so that the text "New Card" sits above the white bar.
-                    .padding(bottom = bottomPadding + 12.dp),
+                    .padding(bottom = bottomPadding + 2.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(
                     modifier = Modifier
-                        .size(60.dp)
+                        .size(56.dp)
                         .shadow(14.dp, CircleShape, spotColor = Accent, ambientColor = Accent)
                         .clip(CircleShape)
                         .background(Brush.linearGradient(listOf(Color(0xFF6F6DF2), Color(0xFF5E5CE6))))
@@ -99,10 +98,10 @@ fun AppBottomNavBar(
                         imageVector = Icons.Filled.Add,
                         contentDescription = "Create flashcards",
                         tint = Color.White,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(30.dp)
                     )
                 }
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(2.dp))
                 Text(
                     text = "New Card",
                     color = Accent,
@@ -141,13 +140,6 @@ private fun NavItem(
             fontSize = 10.sp,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
             maxLines = 1
-        )
-        Spacer(Modifier.height(3.dp))
-        Box(
-            modifier = Modifier
-                .size(5.dp)
-                .clip(CircleShape)
-                .background(if (selected) Accent else Color.Transparent)
         )
     }
 }
