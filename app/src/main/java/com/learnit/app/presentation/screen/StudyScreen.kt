@@ -1,10 +1,5 @@
 package com.learnit.app.presentation.screen
 
-import com.learnit.app.presentation.component.AppBottomNavBar
-import com.learnit.app.presentation.component.CommonTopAppBar
-import com.learnit.app.presentation.component.NavTab
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,32 +8,32 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.learnit.app.R
+import coil.compose.AsyncImage
+import com.learnit.app.domain.model.DeckSummary
+import com.learnit.app.presentation.component.AppBottomNavBar
+import com.learnit.app.presentation.component.CommonTopAppBar
+import com.learnit.app.presentation.component.NavTab
 
-data class StudyDeck(
-    val deckId: String,
-    val title: String,
-    val cardCount: Int,
-    val lastStudied: String,
-    val progress: Float,
-    val imageRes: Int? = null,
-    val isActive: Boolean = false,
-    val isCompleted: Boolean = false
-)
+// Shared palette so text/accents stay consistent across the screen.
+private val Accent = Color(0xFF5E5CE6)
+private val TextPrimary = Color(0xFF1A1A1A)
+private val TextSecondary = Color(0xFF8A8A9A)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,11 +48,11 @@ fun StudyScreen(
     onProfileClick: () -> Unit = {},
     onCreateDeckClick: () -> Unit = {},
     onStudyNowClick: (String) -> Unit = {},
-    onViewResultClick: (String) -> Unit = {},
-    decks: List<StudyDeck> = emptyList()
+    decks: List<DeckSummary> = emptyList(),
+    resolveDeckImage: suspend (topic: String) -> String? = { null }
 ) {
     Scaffold(
-        topBar = { 
+        topBar = {
             CommonTopAppBar(
                 userName = userName ?: "Learner",
                 showBack = showBack,
@@ -89,55 +84,47 @@ fun StudyScreen(
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
-            item {
-                AIRecommendationCard(onStudyClick = { onStudyNowClick("Biology: Cell Structures") })
-                Spacer(modifier = Modifier.height(32.dp))
-            }
-
-            items(decks, key = { it.deckId }) { deck ->
-                DeckCard(
-                    title = deck.title,
-                    cardCount = deck.cardCount,
-                    lastStudied = deck.lastStudied,
-                    progress = deck.progress,
-                    imageRes = deck.imageRes,
-                    isActive = deck.isActive,
-                    isCompleted = deck.isCompleted,
-                    onStudyClick = { onStudyNowClick(deck.deckId) },
-                    onViewResultClick = { onViewResultClick(deck.deckId) }
-                )
-                Spacer(modifier = Modifier.height(20.dp))
+            if (decks.isEmpty()) {
+                item { EmptyDecks() }
+            } else {
+                items(decks, key = { it.deckId }) { deck ->
+                    DeckCard(
+                        title = deck.title,
+                        cardCount = deck.cardCount,
+                        lastStudied = deck.lastStudied,
+                        resolveDeckImage = resolveDeckImage,
+                        onStudyClick = { onStudyNowClick(deck.deckId) }
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
             }
         }
     }
 }
 
 @Composable
-fun HeaderSection(onCreateDeckClick: () -> Unit) {
+private fun HeaderSection(onCreateDeckClick: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = "My Decks",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
+            Text(text = "My Decks", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "Manage and study your flashcard collections.",
                 fontSize = 14.sp,
-                color = Color.Gray
+                color = TextSecondary,
+                lineHeight = 20.sp
             )
         }
-        
+        Spacer(modifier = Modifier.width(12.dp))
         Button(
             onClick = onCreateDeckClick,
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5E5CE6)),
+            colors = ButtonDefaults.buttonColors(containerColor = Accent),
             shape = RoundedCornerShape(12.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp)
         ) {
             Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(4.dp))
@@ -147,71 +134,68 @@ fun HeaderSection(onCreateDeckClick: () -> Unit) {
 }
 
 @Composable
-fun AIRecommendationCard(onStudyClick: () -> Unit) {
+private fun DeckCard(
+    title: String,
+    cardCount: Int,
+    lastStudied: String,
+    resolveDeckImage: suspend (topic: String) -> String?,
+    onStudyClick: () -> Unit
+) {
+    val imageUrl by produceState<String?>(initialValue = null, title) {
+        value = resolveDeckImage(title)
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(12.dp, RoundedCornerShape(24.dp), spotColor = Color(0xFF5E5CE6).copy(alpha = 0.2f)),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5FF))
+            .shadow(8.dp, RoundedCornerShape(16.dp), spotColor = Color.LightGray.copy(alpha = 0.4f)),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Column {
-            // Gambar Banner di atas (Full Width)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(160.dp)
-                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                    .background(Color(0xFFE8E8F5)),
+                    .height(150.dp)
+                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                    .background(
+                        Brush.linearGradient(listOf(Color(0xFFEDECFF), Color(0xFFDCDBFF)))
+                    ),
                 contentAlignment = Alignment.Center
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.cell_structures),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            }
-
-            Column(modifier = Modifier.padding(20.dp)) {
-                Surface(
-                    color = Color(0xFF5E5CE6),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        text = "AI Recommendation",
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        color = Color.White,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold
+                if (imageUrl != null) {
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        Icons.AutoMirrored.Filled.MenuBook,
+                        contentDescription = null,
+                        tint = Accent.copy(alpha = 0.5f),
+                        modifier = Modifier.size(44.dp)
                     )
                 }
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                Text(text = "Biology: Cell Structures", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFF323499))
-                
+            }
+
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(text = title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
                 Spacer(modifier = Modifier.height(4.dp))
-                
                 Text(
-                    text = "You haven't reviewed this deck in 3 days.\nYour recall probability is dropping!",
+                    text = "$cardCount Cards • $lastStudied",
                     fontSize = 13.sp,
-                    color = Color.Gray,
-                    lineHeight = 18.sp
+                    color = TextSecondary
                 )
-                
-                Spacer(modifier = Modifier.height(20.dp))
-                
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Button(
-                        onClick = onStudyClick,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF323499)),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text("Study Now", fontWeight = FontWeight.Bold)
-                    }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Text(text = "124 Cards", fontSize = 13.sp, color = Color.Gray, fontWeight = FontWeight.Medium)
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = onStudyClick,
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Accent),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Study Now", color = Color.White, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -219,122 +203,35 @@ fun AIRecommendationCard(onStudyClick: () -> Unit) {
 }
 
 @Composable
-fun DeckCard(
-    title: String,
-    cardCount: Int,
-    lastStudied: String,
-    progress: Float,
-    imageRes: Int? = null,
-    isActive: Boolean,
-    isCompleted: Boolean,
-    onStudyClick: () -> Unit,
-    onViewResultClick: () -> Unit = {}
-) {
-    val mainColor = if (isCompleted) Color(0xFF34A853) else Color(0xFF5E5CE6)
-    
-    Card(
+private fun EmptyDecks() {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(8.dp, RoundedCornerShape(24.dp), spotColor = Color.LightGray.copy(alpha = 0.4f)),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+            .padding(top = 48.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(160.dp)
-                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                if (imageRes != null) {
-                    Image(
-                        painter = painterResource(id = imageRes),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxWidth().fillMaxHeight(),
-                        contentScale = ContentScale.FillBounds
-                    )
-                } else {
-                    Icon(Icons.Default.Image, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(40.dp))
-                }
-                
-                if (isActive || isCompleted) {
-                    Surface(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(12.dp),
-                        color = (if (isCompleted) Color(0xFF34A853) else Color.White).copy(alpha = 0.9f),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            if (isCompleted) {
-                                Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
-                            }
-                            Text(
-                                text = if (isCompleted) "Completed" else "Active Study",
-                                color = if (isCompleted) Color.White else Color.Gray,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
-            }
-            
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(text = title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                Text(text = "$cardCount Cards • Last studied $lastStudied", fontSize = 13.sp, color = Color.Gray)
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                LinearProgressIndicator(
-                    progress = { progress },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(6.dp)
-                        .clip(CircleShape),
-                    color = mainColor,
-                    trackColor = Color(0xFFF0F0F5)
-                )
-                
-                Spacer(modifier = Modifier.height(20.dp))
-                
-                if (isCompleted) {
-                    // Jika selesai, tampilkan dua tombol: Review & View Score
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        OutlinedButton(
-                            onClick = onViewResultClick,
-                            modifier = Modifier.weight(1f).height(48.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, Color(0xFF34A853))
-                        ) {
-                            Text("View Score", color = Color(0xFF34A853), fontWeight = FontWeight.Bold)
-                        }
-                        Button(
-                            onClick = onStudyClick,
-                            modifier = Modifier.weight(1f).height(48.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF34A853)),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Text("Review Again", fontWeight = FontWeight.Bold)
-                        }
-                    }
-                } else {
-                    Button(
-                        onClick = onStudyClick,
-                        modifier = Modifier.fillMaxWidth().height(48.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5E5CE6)),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text("Study Now", fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
+        Box(
+            modifier = Modifier
+                .size(72.dp)
+                .clip(CircleShape)
+                .background(Color(0xFFEDECFF)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                Icons.AutoMirrored.Filled.MenuBook,
+                contentDescription = null,
+                tint = Accent,
+                modifier = Modifier.size(34.dp)
+            )
         }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text("No decks yet", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            "Tap Create Deck to generate your first set of flashcards.",
+            fontSize = 13.sp,
+            color = TextSecondary
+        )
     }
 }
 
@@ -343,8 +240,8 @@ fun DeckCard(
 fun StudyPreview() {
     StudyScreen(
         decks = listOf(
-            StudyDeck("preview-1", "Quantum Physics", 86, "2h ago", 0.7f, imageRes = R.drawable.quantum_physics, isActive = true),
-            StudyDeck("preview-2", "World History", 245, "1d ago", 0.4f, imageRes = R.drawable.world_history),
+            DeckSummary("quantum_1", "Quantum Computing", 9, "Not studied yet"),
+            DeckSummary("history_1", "World History", 24, "Last studied 2h ago"),
         )
     )
 }

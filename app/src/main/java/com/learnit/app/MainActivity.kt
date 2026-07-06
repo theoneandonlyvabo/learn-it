@@ -210,19 +210,6 @@ class MainActivity : ComponentActivity() {
                                 resolveDeckImage = dashboardVm::imageUrlFor
                             )
                             Screen.Study -> {
-                                val decksList = remember(flashcards) {
-                                    flashcards.groupBy { it.deckId }
-                                        .filterKeys { it.isNotBlank() }
-                                        .map { (deckId, cards) ->
-                                            StudyDeck(
-                                                deckId = deckId,
-                                                title = deckId.substringBeforeLast("_").ifBlank { "Untitled Deck" },
-                                                cardCount = cards.size,
-                                                lastStudied = "Not studied yet",
-                                                progress = 0f
-                                            )
-                                        }
-                                }
                                 StudyScreen(
                                     showBack = previousScreenForStudy != null,
                                     userName = authVm.currentName,
@@ -254,18 +241,14 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onStudyNowClick = { deckId ->
                                         val deckCards = flashcards.filter { it.deckId == deckId }
-                                        // ponytail: no-op for a deckId with no cards (e.g. the static
-                                        // AI-recommendation card, which isn't backed by a real deck).
                                         if (deckCards.isNotEmpty()) {
                                             studyVm.startSession(deckCards, SESSION_DURATION_SECONDS)
                                             previousScreenForStudySession = Screen.Study
                                             currentScreen = Screen.StudySession
                                         }
                                     },
-                                    // ponytail: no persisted per-deck history yet, so DeckCard never
-                                    // renders isCompleted=true for a real deck and this never fires.
-                                    onViewResultClick = { },
-                                    decks = decksList
+                                    decks = dashboardState.decks,
+                                    resolveDeckImage = dashboardVm::imageUrlFor
                                 )
                             }
                             Screen.StudySession -> StudySessionScreen(
