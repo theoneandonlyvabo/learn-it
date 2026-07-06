@@ -58,9 +58,10 @@ fun DashboardScreen(
     Scaffold(
         topBar = { 
             CommonTopAppBar(
+                userName = userName ?: "Learner",
                 onActionClick = onNotificationClick,
                 onProfileClick = onProfileClick
-            ) 
+            )
         },
         bottomBar = {
             AppBottomNavBar(
@@ -214,8 +215,8 @@ fun DashboardScreen(
 fun SummaryCard(label: String, value: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit = {}) {
     Card(
         onClick = onClick,
-        modifier = modifier.shadow(8.dp, RoundedCornerShape(20.dp), spotColor = Color(0xFF5E5CE6).copy(alpha = 0.15f)),
-        shape = RoundedCornerShape(20.dp),
+        modifier = modifier.shadow(8.dp, RoundedCornerShape(16.dp), spotColor = Color(0xFF5E5CE6).copy(alpha = 0.15f)),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -247,8 +248,8 @@ fun QuickActionCard(
 ) {
     Card(
         onClick = onClick,
-        modifier = modifier.shadow(8.dp, RoundedCornerShape(20.dp), spotColor = Color(0xFF5E5CE6).copy(alpha = 0.15f)),
-        shape = RoundedCornerShape(20.dp),
+        modifier = modifier.shadow(8.dp, RoundedCornerShape(16.dp), spotColor = Color(0xFF5E5CE6).copy(alpha = 0.15f)),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = containerColor)
     ) {
         if (!isCompact) {
@@ -257,7 +258,7 @@ fun QuickActionCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
-                    modifier = Modifier.size(48.dp).background(iconContainerColor, RoundedCornerShape(14.dp)),
+                    modifier = Modifier.size(48.dp).background(iconContainerColor, RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(imageVector = icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(24.dp))
@@ -271,7 +272,7 @@ fun QuickActionCard(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(
-                    modifier = Modifier.size(48.dp).background(iconContainerColor, RoundedCornerShape(14.dp)),
+                    modifier = Modifier.size(48.dp).background(iconContainerColor, RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(imageVector = icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(24.dp))
@@ -301,8 +302,8 @@ fun RecentDeckItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 10.dp)
-            .shadow(4.dp, RoundedCornerShape(20.dp), spotColor = Color.LightGray.copy(alpha = 0.15f)),
-        shape = RoundedCornerShape(20.dp),
+            .shadow(4.dp, RoundedCornerShape(16.dp), spotColor = Color.LightGray.copy(alpha = 0.15f)),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Row(
@@ -312,7 +313,7 @@ fun RecentDeckItem(
             Box(
                 modifier = Modifier
                     .size(65.dp)
-                    .clip(RoundedCornerShape(14.dp))
+                    .clip(RoundedCornerShape(12.dp))
                     .background(Color(0xFFF5F5F9)),
                 contentAlignment = Alignment.Center
             ) {

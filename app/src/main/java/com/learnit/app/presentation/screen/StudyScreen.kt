@@ -44,6 +44,7 @@ data class StudyDeck(
 @Composable
 fun StudyScreen(
     showBack: Boolean = false,
+    userName: String? = null,
     onBackClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
     onFlashcardsClick: () -> Unit = {},
@@ -58,11 +59,12 @@ fun StudyScreen(
     Scaffold(
         topBar = { 
             CommonTopAppBar(
+                userName = userName ?: "Learner",
                 showBack = showBack,
                 onBackClick = onBackClick,
                 onActionClick = onNotificationClick,
                 onProfileClick = onProfileClick
-            ) 
+            )
         },
         bottomBar = {
             AppBottomNavBar(

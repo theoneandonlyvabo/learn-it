@@ -225,6 +225,7 @@ class MainActivity : ComponentActivity() {
                                 }
                                 StudyScreen(
                                     showBack = previousScreenForStudy != null,
+                                    userName = authVm.currentName,
                                     onBackClick = {
                                         previousScreenForStudy?.let { currentScreen = it }
                                         previousScreenForStudy = null
@@ -361,6 +362,7 @@ class MainActivity : ComponentActivity() {
                             }
                             Screen.Leaderboard -> LeaderboardScreen(
                                 showBack = previousScreenForLeaderboard != null,
+                                userName = authVm.currentName,
                                 onBackClick = {
                                     previousScreenForLeaderboard?.let { currentScreen = it }
                                     previousScreenForLeaderboard = null

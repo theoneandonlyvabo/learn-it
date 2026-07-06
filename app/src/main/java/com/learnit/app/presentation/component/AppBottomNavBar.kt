@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -50,16 +51,18 @@ fun AppBottomNavBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(94.dp),
+            .background(Color(0xFFFBFBFF)) // fills the FAB-overhang strip so no black shows behind
+            .navigationBarsPadding()        // lift above the system gesture/home bar
+            .height(90.dp),
         contentAlignment = Alignment.BottomCenter
     ) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(72.dp),
+                .height(70.dp),
             color = Color.White,
             shadowElevation = 16.dp,
-            shape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp)
+            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
         ) {
             Row(
                 modifier = Modifier
@@ -97,7 +100,7 @@ fun AppBottomNavBar(
                 )
             }
             Spacer(Modifier.height(3.dp))
-            Text("Create", color = Accent, fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
+            Text("New Card", color = Accent, fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
         }
     }
 }
