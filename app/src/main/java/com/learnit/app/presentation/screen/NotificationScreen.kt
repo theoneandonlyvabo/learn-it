@@ -24,6 +24,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.learnit.app.presentation.component.AppLogo
+import com.learnit.app.presentation.component.AppBottomNavBar
+import com.learnit.app.presentation.component.NavTab
 
 data class NotificationItem(
     val id: Int,
@@ -36,11 +38,14 @@ data class NotificationItem(
 
 @Composable
 fun NotificationScreen(
+    showBack: Boolean = true,
     onBackClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
     onFlashcardsClick: () -> Unit = {},
     onStudyClick: () -> Unit = {},
-    onLeaderboardClick: () -> Unit = {}
+    onLeaderboardClick: () -> Unit = {},
+    onProfileClick: () -> Unit = {},
+    onCreateClick: () -> Unit = {}
 ) {
     val initialNotifications = remember {
         mutableStateListOf(
@@ -61,15 +66,7 @@ fun NotificationScreen(
     }
 
     Scaffold(
-        topBar = { NotificationTopBar(onBackClick) },
-        bottomBar = {
-            NotificationBottomNavigationBar(
-                onHomeClick = onHomeClick,
-                onFlashcardsClick = onFlashcardsClick,
-                onStudyClick = onStudyClick,
-                onLeaderboardClick = onLeaderboardClick
-            )
-        }
+        topBar = { NotificationTopBar(showBack, onBackClick) }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -135,7 +132,7 @@ fun NotificationScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotificationTopBar(onBackClick: () -> Unit) {
+fun NotificationTopBar(showBack: Boolean, onBackClick: () -> Unit) {
     CenterAlignedTopAppBar(
         title = {
             Text(
@@ -146,12 +143,14 @@ fun NotificationTopBar(onBackClick: () -> Unit) {
             )
         },
         navigationIcon = {
-            IconButton(onClick = onBackClick) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = Color(0xFF323499)
-                )
+            if (showBack) {
+                IconButton(onClick = onBackClick) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color(0xFF323499)
+                    )
+                }
             }
         },
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
@@ -341,45 +340,6 @@ fun EmptyNotificationView() {
                 fontSize = 16.sp
             )
         }
-    }
-}
-
-@Composable
-fun NotificationBottomNavigationBar(
-    onHomeClick: () -> Unit,
-    onFlashcardsClick: () -> Unit,
-    onStudyClick: () -> Unit,
-    onLeaderboardClick: () -> Unit
-) {
-    NavigationBar(
-        containerColor = Color.White,
-        tonalElevation = 8.dp,
-        modifier = Modifier.height(80.dp)
-    ) {
-        NavigationBarItem(
-            selected = false,
-            onClick = onHomeClick,
-            icon = { Icon(Icons.Default.Home, contentDescription = null, tint = Color.Gray) },
-            label = { Text("Home", color = Color.Gray) }
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = onFlashcardsClick,
-            icon = { Icon(Icons.Default.Style, contentDescription = null, tint = Color.Gray) },
-            label = { Text("Flashcards", color = Color.Gray) }
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = onStudyClick,
-            icon = { Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = null, tint = Color.Gray) },
-            label = { Text("Study", color = Color.Gray) }
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = onLeaderboardClick,
-            icon = { Icon(Icons.Default.BarChart, contentDescription = null, tint = Color.Gray) },
-            label = { Text("Leaderboard", color = Color.Gray) }
-        )
     }
 }
 

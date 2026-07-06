@@ -24,6 +24,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.learnit.app.presentation.component.AppBottomNavBar
+import com.learnit.app.presentation.component.NavTab
 
 data class HelpTopic(
     val title: String,
@@ -40,12 +42,14 @@ data class FAQItem(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HelpSupportScreen(
+    showBack: Boolean = true,
     onBackClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
     onFlashcardsClick: () -> Unit = {},
     onStudyClick: () -> Unit = {},
     onLeaderboardClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
+    onCreateClick: () -> Unit = {},
     onAppFeaturesClick: () -> Unit = {}
 ) {
     var searchText by remember { mutableStateOf("") }
@@ -59,13 +63,16 @@ fun HelpSupportScreen(
     }
 
     Scaffold(
-        topBar = { HelpSupportTopBar(onBackClick) },
+        topBar = { HelpSupportTopBar(showBack, onBackClick) },
         bottomBar = {
-            HelpBottomNavigationBar(
-                onHomeClick = onHomeClick,
-                onFlashcardsClick = onFlashcardsClick,
-                onStudyClick = onStudyClick,
-                onLeaderboardClick = onLeaderboardClick
+            AppBottomNavBar(
+                current = NavTab.PROFILE, // Help is usually under profile
+                onHome = onHomeClick,
+                onFlashcards = onFlashcardsClick,
+                onCreate = onCreateClick,
+                onLeaderboard = onLeaderboardClick,
+                onProfile = onProfileClick,
+                showCreate = false
             )
         }
     ) { paddingValues ->
@@ -121,7 +128,7 @@ fun HelpSupportScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HelpSupportTopBar(onBackClick: () -> Unit) {
+fun HelpSupportTopBar(showBack: Boolean, onBackClick: () -> Unit) {
     CenterAlignedTopAppBar(
         title = {
             Text(
@@ -132,12 +139,14 @@ fun HelpSupportTopBar(onBackClick: () -> Unit) {
             )
         },
         navigationIcon = {
-            IconButton(onClick = onBackClick) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = Color(0xFF323499)
-                )
+            if (showBack) {
+                IconButton(onClick = onBackClick) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color(0xFF323499)
+                    )
+                }
             }
         },
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
@@ -282,49 +291,6 @@ fun FaqCard(item: FAQItem, onToggle: () -> Unit) {
     }
 }
 
-
-@Composable
-fun HelpBottomNavigationBar(
-    onHomeClick: () -> Unit,
-    onFlashcardsClick: () -> Unit,
-    onStudyClick: () -> Unit,
-    onLeaderboardClick: () -> Unit
-) {
-    NavigationBar(
-        containerColor = Color.White,
-        tonalElevation = 8.dp,
-        modifier = Modifier.height(80.dp)
-    ) {
-        NavigationBarItem(
-            selected = false,
-            onClick = onHomeClick,
-            icon = { Icon(Icons.Default.Home, contentDescription = null, tint = Color.Gray) },
-            label = { Text("Home", color = Color.Gray) },
-            colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = onFlashcardsClick,
-            icon = { Icon(Icons.Default.Style, contentDescription = null, tint = Color.Gray) },
-            label = { Text("Flashcards", color = Color.Gray) },
-            colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = onStudyClick,
-            icon = { Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = null, tint = Color.Gray) },
-            label = { Text("Study", color = Color.Gray) },
-            colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = onLeaderboardClick,
-            icon = { Icon(Icons.Default.BarChart, contentDescription = null, tint = Color.Gray) },
-            label = { Text("Leaderboard", color = Color.Gray) },
-            colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-        )
-    }
-}
 
 @Preview(showBackground = true)
 @Composable

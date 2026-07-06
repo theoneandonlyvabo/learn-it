@@ -10,7 +10,7 @@ class FakeFlashcardRepository : FlashcardRepository {
     private val _cards = MutableStateFlow<List<Flashcard>>(emptyList())
     var generateResult: Result<List<Flashcard>> = Result.success(emptyList())
 
-    override suspend fun generateFlashcards(topic: String): Result<List<Flashcard>> = generateResult
+    override suspend fun generateFlashcards(topic: String, category: String, count: Int): Result<List<Flashcard>> = generateResult
 
     override suspend fun saveFlashcards(cards: List<Flashcard>, deckId: String) {
         _cards.value = _cards.value + cards.map { it.copy(deckId = deckId) }

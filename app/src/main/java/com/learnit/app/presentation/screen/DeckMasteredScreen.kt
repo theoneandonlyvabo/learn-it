@@ -24,6 +24,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.learnit.app.presentation.component.AppBottomNavBar
+import com.learnit.app.presentation.component.NavTab
 
 // ==================================================
 // DATA CLASSES
@@ -63,15 +65,21 @@ fun DeckMasteredScreen(
     onBackToDecks: () -> Unit = {},
     onLeaderboardClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
-    onFlashcardsClick: () -> Unit = {}
+    onFlashcardsClick: () -> Unit = {},
+    onProfileClick: () -> Unit = {},
+    onCreateClick: () -> Unit = {}
 ) {
     Scaffold(
         topBar = { DeckMasteredTopBar(onBackClick) },
         bottomBar = {
-            DeckBottomNavigationBar(
-                onHomeClick = onHomeClick,
-                onFlashcardsClick = onFlashcardsClick,
-                onLeaderboardClick = onLeaderboardClick
+            AppBottomNavBar(
+                current = NavTab.FLASHCARDS,
+                onHome = onHomeClick,
+                onFlashcards = onFlashcardsClick,
+                onCreate = onCreateClick,
+                onLeaderboard = onLeaderboardClick,
+                onProfile = onProfileClick,
+                showCreate = false
             )
         },
         containerColor = Color(0xFFFBFBFF)
@@ -428,62 +436,6 @@ fun ActionButtons(
         ) {
             Text(text = "View Leaderboard", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
         }
-    }
-}
-
-@Composable
-fun DeckBottomNavigationBar(
-    onHomeClick: () -> Unit,
-    onFlashcardsClick: () -> Unit,
-    onLeaderboardClick: () -> Unit
-) {
-    NavigationBar(
-        containerColor = Color.White,
-        tonalElevation = 8.dp,
-        modifier = Modifier.height(80.dp)
-    ) {
-        NavigationBarItem(
-            selected = false,
-            onClick = onHomeClick,
-            icon = { Icon(Icons.Default.Home, contentDescription = null, tint = Color.Gray) },
-            label = { Text("Home", color = Color.Gray) },
-            colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = onFlashcardsClick,
-            icon = { Icon(Icons.Default.Style, contentDescription = null, tint = Color.Gray) },
-            label = { Text("Flashcards", color = Color.Gray) },
-            colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-        )
-        NavigationBarItem(
-            selected = true,
-            onClick = { },
-            icon = { 
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.MenuBook, 
-                    contentDescription = null, 
-                    tint = Color(0xFF5E5CE6),
-                    modifier = Modifier.size(26.dp).offset(y = (-4).dp)
-                )
-            },
-            label = { 
-                Text(
-                    text = "Study", 
-                    fontWeight = FontWeight.Bold, 
-                    color = Color(0xFF5E5CE6),
-                    modifier = Modifier.offset(y = (-2).dp)
-                ) 
-            },
-            colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = onLeaderboardClick,
-            icon = { Icon(Icons.Default.BarChart, contentDescription = null, tint = Color.Gray) },
-            label = { Text("Leaderboard", color = Color.Gray) },
-            colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-        )
     }
 }
 

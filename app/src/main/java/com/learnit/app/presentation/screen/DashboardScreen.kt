@@ -45,6 +45,7 @@ fun DashboardScreen(
     onLeaderboardActionClick: () -> Unit = {},
     onNotificationClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
+    onProfileTabClick: () -> Unit = {},
     onViewAllDecksClick: () -> Unit = {},
     onFlashcardsSummaryClick: () -> Unit = {},
     onLearningScoreSummaryClick: () -> Unit = {},
@@ -70,7 +71,7 @@ fun DashboardScreen(
                 onFlashcards = onFlashcardsClick,
                 onCreate = onCreateFlashcardClick,
                 onLeaderboard = onLeaderboardClick,
-                onProfile = onProfileClick
+                onProfile = onProfileTabClick
             )
         }
     ) { paddingValues ->

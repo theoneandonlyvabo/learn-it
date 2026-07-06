@@ -1,6 +1,8 @@
 package com.learnit.app.presentation.screen
 
 import com.learnit.app.presentation.component.CommonTopAppBar
+import com.learnit.app.presentation.component.AppBottomNavBar
+import com.learnit.app.presentation.component.NavTab
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -11,9 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,7 +38,7 @@ fun GenerateFlashcardScreen(
     onProfileClick: () -> Unit = {},
     isGenerating: Boolean = false,
     errorMessage: String? = null,
-    onGenerate: (topic: String) -> Unit = {}
+    onGenerate: (topic: String, category: String, count: Int) -> Unit = { _, _, _ -> }
 ) {
     Scaffold(
         topBar = { 
@@ -50,10 +50,14 @@ fun GenerateFlashcardScreen(
             ) 
         },
         bottomBar = {
-            GenerateBottomNavigationBar(
-                onHomeClick = onHomeClick,
-                onStudyClick = onStudyClick,
-                onLeaderboardClick = onLeaderboardClick
+            AppBottomNavBar(
+                current = NavTab.FLASHCARDS,
+                onHome = onHomeClick,
+                onFlashcards = onStudyClick,
+                onCreate = {},
+                onLeaderboard = onLeaderboardClick,
+                onProfile = onProfileClick,
+                showCreate = false
             )
         }
     ) { paddingValues ->
@@ -143,10 +147,8 @@ fun LoadingOverlay() {
 }
 
 @Composable
-fun GenerateFormCard(onGenerateClick: (topic: String) -> Unit, isGenerating: Boolean = false) {
+fun GenerateFormCard(onGenerateClick: (topic: String, category: String, count: Int) -> Unit, isGenerating: Boolean = false) {
     var category by remember { mutableStateOf("") }
-    // ponytail: card-count selection is cosmetic — GroqApiService generates a fixed 8-10 cards per
-    // topic (api.yaml), so this value isn't sent to the backend. Wire it if Groq supports a count param.
     var numberOfCardsStr by remember { mutableStateOf("5 Cards") }
     var topicText by remember { mutableStateOf("") }
 
@@ -208,7 +210,10 @@ fun GenerateFormCard(onGenerateClick: (topic: String) -> Unit, isGenerating: Boo
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = { onGenerateClick(topicText) },
+                onClick = { 
+                    val count = numberOfCardsStr.split(" ")[0].toIntOrNull() ?: 5
+                    onGenerateClick(topicText, category, count)
+                },
                 enabled = topicText.isNotBlank() && !isGenerating,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -230,7 +235,28 @@ fun GenerateFormCard(onGenerateClick: (topic: String) -> Unit, isGenerating: Boo
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryDropdown(selected: String, onSelected: (String) -> Unit) {
-    val categories = listOf("Biology", "Chemistry", "Physics", "Mathematics", "History")
+    val categories = listOf(
+        "Computer Science",
+        "Biology",
+        "Chemistry",
+        "Physics",
+        "Mathematics",
+        "History",
+        "Engineering",
+        "Business",
+        "Economics",
+        "Law",
+        "Medicine",
+        "Psychology",
+        "Literature",
+        "Art & Design",
+        "Philosophy",
+        "Geography",
+        "Languages",
+        "Sociology",
+        "Politics",
+        "Accounting"
+    )
     var expanded by remember { mutableStateOf(false) }
 
     Column {
@@ -312,62 +338,6 @@ fun NumberOfCardsDropdown(selected: String, onSelected: (String) -> Unit) {
                 }
             }
         }
-    }
-}
-
-@Composable
-fun GenerateBottomNavigationBar(
-    onHomeClick: () -> Unit,
-    onStudyClick: () -> Unit,
-    onLeaderboardClick: () -> Unit
-) {
-    NavigationBar(
-        containerColor = Color.White,
-        tonalElevation = 8.dp,
-        modifier = Modifier.height(80.dp)
-    ) {
-        NavigationBarItem(
-            selected = false,
-            onClick = onHomeClick,
-            icon = { Icon(Icons.Default.Home, contentDescription = null, tint = Color.Gray) },
-            label = { Text("Home", color = Color.Gray) },
-            colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-        )
-        NavigationBarItem(
-            selected = true,
-            onClick = { },
-            icon = { 
-                Icon(
-                    imageVector = Icons.Default.Style, 
-                    contentDescription = null, 
-                    tint = Color(0xFF5E5CE6),
-                    modifier = Modifier.size(26.dp).offset(y = (-4).dp)
-                )
-            },
-            label = { 
-                Text(
-                    text = "Flashcards", 
-                    fontWeight = FontWeight.Bold, 
-                    color = Color(0xFF5E5CE6),
-                    modifier = Modifier.offset(y = (-2).dp)
-                ) 
-            },
-            colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = onStudyClick,
-            icon = { Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = null, tint = Color.Gray) },
-            label = { Text("Study", color = Color.Gray) },
-            colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = onLeaderboardClick,
-            icon = { Icon(Icons.Default.BarChart, contentDescription = null, tint = Color.Gray) },
-            label = { Text("Leaderboard", color = Color.Gray) },
-            colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-        )
     }
 }
 

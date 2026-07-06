@@ -46,6 +46,7 @@ fun StudyScreen(
     onLeaderboardClick: () -> Unit = {},
     onNotificationClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
+    onProfileTabClick: () -> Unit = {},
     onCreateDeckClick: () -> Unit = {},
     onStudyNowClick: (String) -> Unit = {},
     decks: List<DeckSummary> = emptyList(),
@@ -68,7 +69,7 @@ fun StudyScreen(
                 onFlashcards = onFlashcardsClick,
                 onCreate = onCreateDeckClick,
                 onLeaderboard = onLeaderboardClick,
-                onProfile = onProfileClick
+                onProfile = onProfileTabClick
             )
         }
     ) { paddingValues ->

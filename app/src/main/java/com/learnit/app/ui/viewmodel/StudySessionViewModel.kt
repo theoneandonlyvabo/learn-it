@@ -37,26 +37,24 @@ class StudySessionViewModel @Inject constructor(
 
     fun startSession(cards: List<Flashcard>, durationSeconds: Int) {
         currentDeckId = cards.firstOrNull()?.deckId ?: ""
-        sessionDuration = durationSeconds
+        sessionDuration = 0 // Counting up now
         _uiState.value = SessionUiState(
             cards = cards,
-            timeRemaining = durationSeconds,
+            timeElapsed = 0,
             status = SessionStatus.RUNNING
         )
-        launchTimer(durationSeconds)
+        launchTimer()
     }
 
-    private fun launchTimer(durationSeconds: Int) {
+    private fun launchTimer() {
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
-            var remaining = durationSeconds
-            while (remaining > 0 && isActive) {
+            var elapsed = 0
+            while (isActive) {
                 delay(1_000)
-                remaining--
-                _uiState.update { it.copy(timeRemaining = remaining) }
+                elapsed++
+                _uiState.update { it.copy(timeElapsed = elapsed) }
             }
-            // Timer expired naturally — finish with whatever was revealed
-            if (isActive) finishSession()
         }
     }
 
@@ -82,21 +80,21 @@ class StudySessionViewModel @Inject constructor(
         val finalScore = ScoreCalculator.calculate(
             revealedCards = state.revealedCount,
             totalCards = state.cards.size,
-            timeRemaining = state.timeRemaining
+            timeRemaining = 0 // Time bonus removed for count-up timer
         )
         _uiState.update { it.copy(score = finalScore, status = SessionStatus.FINISHED) }
-        persistSession(finalScore, state.timeRemaining)
+        persistSession(finalScore, state.timeElapsed)
         uploadScore(finalScore)
     }
 
-    private fun persistSession(score: Int, timeRemaining: Int) {
+    private fun persistSession(score: Int, timeElapsed: Int) {
         viewModelScope.launch {
             runCatching {
                 sessionDao.insertSession(
                     StudySessionEntity(
                         deckId = currentDeckId,
                         score = score,
-                        durationSeconds = (sessionDuration - timeRemaining).coerceAtLeast(0)
+                        durationSeconds = timeElapsed
                     )
                 )
             }

@@ -32,3 +32,9 @@ internal data class FlashcardItem(
     val question: String,
     val answer: String
 )
+
+@Serializable
+internal data class FlashcardGenerationContainer(
+    val title: String,
+    val cards: List<FlashcardItem>
+)

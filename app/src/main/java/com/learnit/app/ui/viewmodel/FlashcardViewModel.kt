@@ -25,16 +25,18 @@ class FlashcardViewModel @Inject constructor(
     val flashcards: StateFlow<List<Flashcard>> = repository.getFlashcards()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    fun generate(topic: String) {
+    fun generate(topic: String, category: String, count: Int) {
         if (topic.isBlank()) {
             _generateState.value = ApiState.Error("Topic cannot be empty")
             return
         }
         viewModelScope.launch {
             _generateState.value = ApiState.Loading
-            repository.generateFlashcards(topic).fold(
+            repository.generateFlashcards(topic, category, count).fold(
                 onSuccess = { cards ->
-                    val deckId = "${topic.trim().take(50)}_${System.currentTimeMillis()}"
+                    val displayTitle = cards.firstOrNull()?.topic ?: topic
+                    // Encode category into deckId so we can retrieve it for the image mapping
+                    val deckId = "${category}|${displayTitle.trim().take(40)}_${System.currentTimeMillis()}"
                     repository.saveFlashcards(cards, deckId)
                     _generateState.value = ApiState.Success(cards)
                 },

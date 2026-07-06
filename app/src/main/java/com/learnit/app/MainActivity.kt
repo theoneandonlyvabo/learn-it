@@ -108,7 +108,7 @@ class MainActivity : ComponentActivity() {
 
                 val transitionProgress by animateFloatAsState(
                     targetValue = if (isSplash) 0f else 1f,
-                    animationSpec = tween(1000, delayMillis = 1000, easing = EaseInOutCubic),
+                    animationSpec = tween(durationMillis = 800, easing = EaseInOutQuart),
                     label = "MasterTransition"
                 )
 
@@ -122,7 +122,11 @@ class MainActivity : ComponentActivity() {
                     AnimatedContent(
                         targetState = currentScreen,
                         transitionSpec = {
-                            EnterTransition.None togetherWith ExitTransition.None
+                            if (initialState == Screen.Splash && targetState == Screen.Login) {
+                                fadeIn(animationSpec = tween(600)) togetherWith fadeOut(animationSpec = tween(200))
+                            } else {
+                                EnterTransition.None togetherWith ExitTransition.None
+                            }
                         },
                         label = "ScreenTransition"
                     ) { screen ->
@@ -187,6 +191,10 @@ class MainActivity : ComponentActivity() {
                                     previousScreenForProfile = Screen.Dashboard
                                     currentScreen = Screen.Profile 
                                 },
+                                onProfileTabClick = {
+                                    previousScreenForProfile = null
+                                    currentScreen = Screen.Profile
+                                },
                                 onViewAllDecksClick = { 
                                     previousScreenForStudy = Screen.Dashboard
                                     currentScreen = Screen.Study 
@@ -233,6 +241,10 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onProfileClick = {
                                         previousScreenForProfile = Screen.Study
+                                        currentScreen = Screen.Profile
+                                    },
+                                    onProfileTabClick = {
+                                        previousScreenForProfile = null
                                         currentScreen = Screen.Profile
                                     },
                                     onCreateDeckClick = {
@@ -337,9 +349,9 @@ class MainActivity : ComponentActivity() {
                                     },
                                     isGenerating = hasStartedGenerating && generateState is ApiState.Loading,
                                     errorMessage = (generateState as? ApiState.Error)?.errorMsg,
-                                    onGenerate = { topic ->
+                                    onGenerate = { topic, category, count ->
                                         hasStartedGenerating = true
-                                        flashcardVm.generate(topic)
+                                        flashcardVm.generate(topic, category, count)
                                     }
                                 )
                             }
@@ -375,6 +387,10 @@ class MainActivity : ComponentActivity() {
                                     previousScreenForProfile = Screen.Leaderboard
                                     currentScreen = Screen.Profile
                                 },
+                                onProfileTabClick = {
+                                    previousScreenForProfile = null
+                                    currentScreen = Screen.Profile
+                                },
                                 entries = leaderboardEntries,
                                 currentUserId = leaderboardVm.currentUserId
                             )
@@ -404,6 +420,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                             Screen.Profile -> ProfileScreen(
+                                showBack = previousScreenForProfile != null,
                                 onBackClick = {
                                     previousScreenForProfile?.let { currentScreen = it }
                                     previousScreenForProfile = null
@@ -442,7 +459,14 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = Screen.Login
                                 },
                                 name = authVm.currentName,
-                                email = authVm.currentEmail
+                                email = authVm.currentEmail,
+                                totalStudyTimeSeconds = dashboardState.totalStudyTimeSeconds,
+                                learningScore = dashboardState.learningScore,
+                                flashcardCount = dashboardState.flashcardCount,
+                                daysStreak = dashboardState.daysStreak,
+                                cardsMastered = dashboardState.cardsMastered,
+                                globalRank = (leaderboardEntries.indexOfFirst { it.userId == leaderboardVm.currentUserId } + 1).let { if (it > 0) it.toString() else "-" },
+                                achievements = dashboardState.achievements
                             )
                             Screen.HelpSupport -> HelpSupportScreen(
                                 onBackClick = { currentScreen = Screen.Profile },

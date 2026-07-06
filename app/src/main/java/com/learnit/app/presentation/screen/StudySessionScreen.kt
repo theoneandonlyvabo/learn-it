@@ -52,7 +52,7 @@ fun StudySessionScreen(
 
     Scaffold(
         topBar = {
-            StudyTopBar(onBackClick = onBackClick, timeRemaining = state.timeRemaining)
+            StudyTopBar(onBackClick = onBackClick, timeElapsed = state.timeElapsed)
         }
     ) { paddingValues ->
         if (currentCard != null) {
@@ -117,7 +117,7 @@ private fun formatTime(seconds: Int): String {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StudyTopBar(onBackClick: () -> Unit, timeRemaining: Int = 0) {
+fun StudyTopBar(onBackClick: () -> Unit, timeElapsed: Int = 0) {
     TopAppBar(
         title = {
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
@@ -156,7 +156,7 @@ fun StudyTopBar(onBackClick: () -> Unit, timeRemaining: Int = 0) {
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = formatTime(timeRemaining),
+                        text = formatTime(timeElapsed),
                         color = Color(0xFF5E5CE6),
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp
@@ -401,7 +401,7 @@ fun StudySessionPreview() {
                     topic = "Biology: Cell Structures"
                 )
             ),
-            timeRemaining = 298
+            timeElapsed = 298
         )
     )
 }

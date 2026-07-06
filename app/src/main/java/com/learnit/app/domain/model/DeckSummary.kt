@@ -10,5 +10,9 @@ data class DeckSummary(
 data class DashboardUiState(
     val flashcardCount: Int = 0,
     val learningScore: Int = 0,
+    val totalStudyTimeSeconds: Long = 0,
+    val daysStreak: Int = 0,
+    val cardsMastered: Int = 0,
+    val achievements: List<com.learnit.app.presentation.screen.Achievement> = emptyList(),
     val decks: List<DeckSummary> = emptyList()
 )

@@ -25,6 +25,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.learnit.app.presentation.component.AppBottomNavBar
+import com.learnit.app.presentation.component.NavTab
 
 data class UserSettingsProfile(
     val fullName: String,
@@ -35,11 +37,14 @@ data class UserSettingsProfile(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
+    showBack: Boolean = true,
     onBackClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
     onFlashcardsClick: () -> Unit = {},
     onStudyClick: () -> Unit = {},
     onLeaderboardClick: () -> Unit = {},
+    onProfileClick: () -> Unit = {},
+    onCreateClick: () -> Unit = {},
     onEditPhotoClick: () -> Unit = {},
     initialName: String? = null,
     initialEmail: String? = null
@@ -81,6 +86,7 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             SettingsTopBar(
+                showBack = showBack,
                 onBackClick = onBackClick,
                 onSaveClick = {
                     Toast.makeText(context, "Changes saved", Toast.LENGTH_SHORT).show()
@@ -89,11 +95,14 @@ fun SettingsScreen(
             )
         },
         bottomBar = {
-            SettingsBottomNavigationBar(
-                onHomeClick = onHomeClick,
-                onFlashcardsClick = onFlashcardsClick,
-                onStudyClick = onStudyClick,
-                onLeaderboardClick = onLeaderboardClick
+            AppBottomNavBar(
+                current = NavTab.PROFILE,
+                onHome = onHomeClick,
+                onFlashcards = onFlashcardsClick,
+                onCreate = onCreateClick,
+                onLeaderboard = onLeaderboardClick,
+                onProfile = onProfileClick,
+                showCreate = false
             )
         }
     ) { paddingValues ->
@@ -146,7 +155,7 @@ fun SettingsScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsTopBar(onBackClick: () -> Unit, onSaveClick: () -> Unit) {
+fun SettingsTopBar(showBack: Boolean, onBackClick: () -> Unit, onSaveClick: () -> Unit) {
     CenterAlignedTopAppBar(
         title = {
             Text(
@@ -157,12 +166,14 @@ fun SettingsTopBar(onBackClick: () -> Unit, onSaveClick: () -> Unit) {
             )
         },
         navigationIcon = {
-            IconButton(onClick = onBackClick) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = Color(0xFF323499)
-                )
+            if (showBack) {
+                IconButton(onClick = onBackClick) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color(0xFF323499)
+                    )
+                }
             }
         },
         actions = {
@@ -485,49 +496,6 @@ fun DailyGoalDialog(
             }
         }
     )
-}
-
-@Composable
-fun SettingsBottomNavigationBar(
-    onHomeClick: () -> Unit,
-    onFlashcardsClick: () -> Unit,
-    onStudyClick: () -> Unit,
-    onLeaderboardClick: () -> Unit
-) {
-    NavigationBar(
-        containerColor = Color.White,
-        tonalElevation = 8.dp,
-        modifier = Modifier.height(80.dp)
-    ) {
-        NavigationBarItem(
-            selected = false,
-            onClick = onHomeClick,
-            icon = { Icon(Icons.Default.Home, contentDescription = null, tint = Color.Gray) },
-            label = { Text("Home", color = Color.Gray) },
-            colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = onFlashcardsClick,
-            icon = { Icon(Icons.Default.Style, contentDescription = null, tint = Color.Gray) },
-            label = { Text("Flashcards", color = Color.Gray) },
-            colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = onStudyClick,
-            icon = { Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = null, tint = Color.Gray) },
-            label = { Text("Study", color = Color.Gray) },
-            colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = onLeaderboardClick,
-            icon = { Icon(Icons.Default.BarChart, contentDescription = null, tint = Color.Gray) },
-            label = { Text("Leaderboard", color = Color.Gray) },
-            colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
-        )
-    }
 }
 
 @Preview(showBackground = true)

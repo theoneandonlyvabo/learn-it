@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -34,10 +33,6 @@ enum class NavTab { HOME, FLASHCARDS, LEADERBOARD, PROFILE }
 private val Accent = Color(0xFF5E5CE6)
 private val Inactive = Color(0xFF9AA0B4)
 
-/**
- * Shared bottom navigation with a center-docked "Create" FAB (Material 3 pattern).
- * Home · Flashcards · [Create] · Leaderboard · Profile.
- */
 @Composable
 fun AppBottomNavBar(
     current: NavTab,
@@ -46,20 +41,22 @@ fun AppBottomNavBar(
     onCreate: () -> Unit,
     onLeaderboard: () -> Unit,
     onProfile: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showCreate: Boolean = true
 ) {
+    val navInsets = WindowInsets.navigationBars.asPaddingValues()
+    val bottomPadding = navInsets.calculateBottomPadding()
+
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color(0xFFFBFBFF)) // fills the FAB-overhang strip so no black shows behind
-            .navigationBarsPadding()        // lift above the system gesture/home bar
-            .height(90.dp),
+            .wrapContentHeight(),
         contentAlignment = Alignment.BottomCenter
     ) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(70.dp),
+                .height(80.dp + bottomPadding),
             color = Color.White,
             shadowElevation = 16.dp,
             shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
@@ -67,40 +64,52 @@ fun AppBottomNavBar(
             Row(
                 modifier = Modifier
                     .fillMaxSize()
+                    .padding(bottom = bottomPadding + 8.dp)
                     .padding(horizontal = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 NavItem(Icons.Filled.Home, "Home", current == NavTab.HOME, onHome, Modifier.weight(1f))
                 NavItem(Icons.Filled.Style, "Flashcards", current == NavTab.FLASHCARDS, onFlashcards, Modifier.weight(1f))
-                Spacer(Modifier.weight(1f)) // reserved slot for the docked FAB
+                if (showCreate) {
+                    Spacer(Modifier.weight(1f))
+                }
                 NavItem(Icons.Filled.BarChart, "Leaderboard", current == NavTab.LEADERBOARD, onLeaderboard, Modifier.weight(1f))
                 NavItem(Icons.Filled.Person, "Profile", current == NavTab.PROFILE, onProfile, Modifier.weight(1f))
             }
         }
 
-        // Raised center Create button, straddling the top edge of the bar.
-        Column(
-            modifier = Modifier.align(Alignment.TopCenter),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Box(
+        if (showCreate) {
+            Column(
                 modifier = Modifier
-                    .size(58.dp)
-                    .shadow(14.dp, CircleShape, spotColor = Accent, ambientColor = Accent)
-                    .clip(CircleShape)
-                    .background(Brush.linearGradient(listOf(Color(0xFF6F6DF2), Color(0xFF5E5CE6))))
-                    .clickable(onClick = onCreate),
-                contentAlignment = Alignment.Center
+                    .align(Alignment.BottomCenter)
+                    // We lift the entire column so that the text "New Card" sits above the white bar.
+                    .padding(bottom = bottomPadding + 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = "Create flashcards",
-                    tint = Color.White,
-                    modifier = Modifier.size(30.dp)
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .shadow(14.dp, CircleShape, spotColor = Accent, ambientColor = Accent)
+                        .clip(CircleShape)
+                        .background(Brush.linearGradient(listOf(Color(0xFF6F6DF2), Color(0xFF5E5CE6))))
+                        .clickable(onClick = onCreate),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = "Create flashcards",
+                        tint = Color.White,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = "New Card",
+                    color = Accent,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
-            Spacer(Modifier.height(3.dp))
-            Text("New Card", color = Accent, fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
         }
     }
 }

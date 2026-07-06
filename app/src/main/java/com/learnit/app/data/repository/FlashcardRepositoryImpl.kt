@@ -21,13 +21,26 @@ class FlashcardRepositoryImpl @Inject constructor(
     private val networkMonitor: NetworkMonitor
 ) : FlashcardRepository {
 
-    override suspend fun generateFlashcards(topic: String): Result<List<Flashcard>> {
+    override suspend fun generateFlashcards(topic: String, category: String, count: Int): Result<List<Flashcard>> {
         if (!networkMonitor.isOnline()) return Result.failure(NoConnectivityException())
         return runCatching {
+            val systemPrompt = "Kamu adalah generator flashcard ahli dalam bidang $category. " +
+                    "Berdasarkan topik atau teks yang diberikan user, hasilkan " +
+                    "judul yang singkat (maksimal 5 kata) dan tepat untuk deck tersebut, serta " +
+                    "$count pasangan pertanyaan-jawaban.\n\n" +
+                    "Format output WAJIB JSON murni seperti ini:\n" +
+                    "{\n" +
+                    "  \"title\": \"Judul Singkat\",\n" +
+                    "  \"cards\": [\n" +
+                    "    {\"question\": \"...\", \"answer\": \"...\"}\n" +
+                    "  ]\n" +
+                    "}\n\n" +
+                    "Jangan tambahkan teks lain atau markdown code fence."
+
             val request = GroqRequest(
                 model = GroqApiService.MODEL,
                 messages = listOf(
-                    GroqMessage(role = "system", content = GroqApiService.SYSTEM_PROMPT),
+                    GroqMessage(role = "system", content = systemPrompt),
                     GroqMessage(role = "user", content = topic)
                 )
             )

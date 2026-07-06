@@ -53,6 +53,7 @@ fun LeaderboardScreen(
     onCreateClick: () -> Unit = {},
     onNotificationClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
+    onProfileTabClick: () -> Unit = {},
     entries: List<LeaderboardEntry> = emptyList(),
     currentUserId: String? = null
 ) {
@@ -88,7 +89,7 @@ fun LeaderboardScreen(
                 onFlashcards = onFlashcardsClick,
                 onCreate = onCreateClick,
                 onLeaderboard = { },
-                onProfile = onProfileClick
+                onProfile = onProfileTabClick
             )
         }
     ) { paddingValues ->
