@@ -4,7 +4,8 @@ data class DeckSummary(
     val deckId: String,
     val title: String,
     val cardCount: Int,
-    val lastStudied: String
+    val lastStudied: String,
+    val imageRes: Int? = null
 )
 
 data class DashboardUiState(

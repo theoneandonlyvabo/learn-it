@@ -35,7 +35,7 @@ class FlashcardViewModel @Inject constructor(
             repository.generateFlashcards(topic, category, count).fold(
                 onSuccess = { cards ->
                     val displayTitle = cards.firstOrNull()?.topic ?: topic
-                    // Encode category into deckId so we can retrieve it for the image mapping
+                    // Encode category into deckId for image mapping
                     val deckId = "${category}|${displayTitle.trim().take(40)}_${System.currentTimeMillis()}"
                     repository.saveFlashcards(cards, deckId)
                     _generateState.value = ApiState.Success(cards)

@@ -1,7 +1,9 @@
 package com.learnit.app.data.repository
 
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.SetOptions
 import com.learnit.app.domain.model.LeaderboardEntry
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -15,14 +17,17 @@ class LeaderboardRepositoryImpl @Inject constructor(
 
     private val collection get() = firestore.collection("leaderboard")
 
-    // Only overwrite if the new score is strictly higher than the stored best.
+    // Cumulative score update using Firestore increment
     override suspend fun uploadScore(userId: String, username: String, score: Int) {
         val ref = collection.document(userId)
-        val existing = runCatching { ref.get().await() }.getOrNull()
-        val currentBest = existing?.getLong("score")?.toInt() ?: 0
-        if (score > currentBest) {
-            ref.set(mapOf("userId" to userId, "username" to username, "score" to score)).await()
-        }
+        val data = mapOf(
+            "userId" to userId,
+            "username" to username,
+            "score" to FieldValue.increment(score.toLong())
+        )
+        // Use merge so it creates the document if it doesn't exist, 
+        // or just updates the fields if it does.
+        ref.set(data, SetOptions.merge()).await()
     }
 
     override fun getLeaderboard(): Flow<List<LeaderboardEntry>> = callbackFlow {

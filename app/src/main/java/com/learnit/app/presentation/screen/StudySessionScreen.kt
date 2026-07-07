@@ -39,16 +39,20 @@ fun StudySessionScreen(
     state: SessionUiState = SessionUiState(),
     onBackClick: () -> Unit = {},
     onFlip: () -> Unit = {},
+    onPrevious: () -> Unit = {},
     onNext: () -> Unit = {},
     onFinish: () -> Unit = {}
 ) {
     val currentCard = state.currentCard
 
-    val rotation by animateFloatAsState(
-        targetValue = if (state.isFlipped) 180f else 0f,
-        animationSpec = tween(durationMillis = 600),
-        label = "CardFlip"
-    )
+    // Wrap animation in key so it resets instantly when moving to a different card
+    val rotation by key(state.currentCardIndex) {
+        animateFloatAsState(
+            targetValue = if (state.isFlipped) 180f else 0f,
+            animationSpec = tween(durationMillis = 600),
+            label = "CardFlip"
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -87,14 +91,11 @@ fun StudySessionScreen(
                 Spacer(modifier = Modifier.height(48.dp))
 
                 // 4. Tombol Navigasi Dinamis
-                // ponytail: Previous disabled — StudySessionViewModel only exposes nextCard(),
-                // since score is revealed-cards-based and not designed to be undone. Add
-                // previousCard() to the VM if going back becomes a requirement.
                 NavigationButtons(
-                    onPrevious = {},
+                    onPrevious = onPrevious,
                     onNext = { if (state.isLastCard) onFinish() else onNext() },
-                    isPreviousEnabled = false,
-                    isNextEnabled = true, // Always enabled, becomes "Submit" at the end
+                    isPreviousEnabled = state.currentCardIndex > 0,
+                    isNextEnabled = true,
                     nextButtonText = if (state.isLastCard) "Submit" else "Next"
                 )
 

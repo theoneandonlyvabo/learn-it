@@ -58,19 +58,35 @@ class StudySessionViewModel @Inject constructor(
         }
     }
 
-    // Each flip hidden→revealed increments revealedCount; flipping back does not decrement.
+    // Each flip hidden→revealed adds the current index to revealedIndices.
+    // Score is based on unique cards revealed during the session.
     fun flipCard() {
         val state = _uiState.value
         if (state.status != SessionStatus.RUNNING) return
+        
         val nowFlipped = !state.isFlipped
-        val newRevealed = if (nowFlipped) state.revealedCount + 1 else state.revealedCount
-        _uiState.update { it.copy(isFlipped = nowFlipped, revealedCount = newRevealed) }
+        val newRevealedIndices = if (nowFlipped) {
+            state.revealedIndices + state.currentCardIndex
+        } else {
+            state.revealedIndices
+        }
+        
+        _uiState.update { it.copy(
+            isFlipped = nowFlipped, 
+            revealedIndices = newRevealedIndices
+        ) }
     }
 
     fun nextCard() {
         val state = _uiState.value
         if (state.isLastCard) return
         _uiState.update { it.copy(currentCardIndex = it.currentCardIndex + 1, isFlipped = false) }
+    }
+
+    fun previousCard() {
+        val state = _uiState.value
+        if (state.currentCardIndex <= 0) return
+        _uiState.update { it.copy(currentCardIndex = it.currentCardIndex - 1, isFlipped = false) }
     }
 
     fun finishSession() {

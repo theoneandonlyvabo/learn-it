@@ -214,8 +214,7 @@ class MainActivity : ComponentActivity() {
                                 onDeckClick = {
                                     previousScreenForStudy = Screen.Dashboard
                                     currentScreen = Screen.Study
-                                },
-                                resolveDeckImage = dashboardVm::imageUrlFor
+                                }
                             )
                             Screen.Study -> {
                                 StudyScreen(
@@ -259,18 +258,14 @@ class MainActivity : ComponentActivity() {
                                             currentScreen = Screen.StudySession
                                         }
                                     },
-                                    decks = dashboardState.decks,
-                                    resolveDeckImage = dashboardVm::imageUrlFor
+                                    decks = dashboardState.decks
                                 )
                             }
                             Screen.StudySession -> StudySessionScreen(
                                 state = sessionState,
-                                onBackClick = {
-                                    previousScreenForStudySession?.let { currentScreen = it }
-                                    // Jika tidak ada history, default ke Study
-                                    if (previousScreenForStudySession == null) currentScreen = Screen.Study
-                                },
+                                onBackClick = { currentScreen = Screen.Study },
                                 onFlip = { studyVm.flipCard() },
+                                onPrevious = { studyVm.previousCard() },
                                 onNext = { studyVm.nextCard() },
                                 onFinish = {
                                     studyVm.finishSession()

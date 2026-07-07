@@ -49,8 +49,7 @@ fun StudyScreen(
     onProfileTabClick: () -> Unit = {},
     onCreateDeckClick: () -> Unit = {},
     onStudyNowClick: (String) -> Unit = {},
-    decks: List<DeckSummary> = emptyList(),
-    resolveDeckImage: suspend (topic: String) -> String? = { null }
+    decks: List<DeckSummary> = emptyList()
 ) {
     Scaffold(
         topBar = {
@@ -93,7 +92,7 @@ fun StudyScreen(
                         title = deck.title,
                         cardCount = deck.cardCount,
                         lastStudied = deck.lastStudied,
-                        resolveDeckImage = resolveDeckImage,
+                        imageRes = deck.imageRes,
                         onStudyClick = { onStudyNowClick(deck.deckId) }
                     )
                     Spacer(modifier = Modifier.height(16.dp))
@@ -139,13 +138,9 @@ private fun DeckCard(
     title: String,
     cardCount: Int,
     lastStudied: String,
-    resolveDeckImage: suspend (topic: String) -> String?,
+    imageRes: Int? = null,
     onStudyClick: () -> Unit
 ) {
-    val imageUrl by produceState<String?>(initialValue = null, title) {
-        value = resolveDeckImage(title)
-    }
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -164,12 +159,12 @@ private fun DeckCard(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                if (imageUrl != null) {
-                    AsyncImage(
-                        model = imageUrl,
+                if (imageRes != null) {
+                    androidx.compose.foundation.Image(
+                        painter = androidx.compose.ui.res.painterResource(id = imageRes),
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.FillBounds
                     )
                 } else {
                     Icon(

@@ -211,21 +211,38 @@ fun GenerateFormCard(onGenerateClick: (topic: String, category: String, count: I
 
             Button(
                 onClick = { 
-                    val count = numberOfCardsStr.split(" ")[0].toIntOrNull() ?: 5
-                    onGenerateClick(topicText, category, count)
+                    if (topicText.isNotBlank() && !isGenerating) {
+                        val count = numberOfCardsStr.split(" ")[0].toIntOrNull() ?: 5
+                        onGenerateClick(topicText, category, count)
+                    }
                 },
                 enabled = topicText.isNotBlank() && !isGenerating,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
-                    .shadow(12.dp, RoundedCornerShape(16.dp), spotColor = Color(0xFF5E5CE6).copy(alpha = 0.5f)),
+                    .shadow(
+                        elevation = if (!isGenerating) 12.dp else 0.dp, 
+                        shape = RoundedCornerShape(16.dp), 
+                        spotColor = Color(0xFF5E5CE6).copy(alpha = 0.5f)
+                    ),
                 shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5E5CE6))
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF5E5CE6),
+                    disabledContainerColor = Color(0xFFE0E0E0)
+                )
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(text = "Generate Flashcards", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                if (isGenerating) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(imageVector = Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(text = "Generate Flashcards", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
         }

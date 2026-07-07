@@ -53,8 +53,7 @@ fun DashboardScreen(
     flashcardCount: Int = 0,
     learningScore: Int = 0,
     decks: List<DeckSummary> = emptyList(),
-    onDeckClick: (DeckSummary) -> Unit = {},
-    resolveDeckImage: suspend (topic: String) -> String? = { null }
+    onDeckClick: (DeckSummary) -> Unit = {}
 ) {
     Scaffold(
         topBar = { 
@@ -200,7 +199,7 @@ fun DashboardScreen(
                         title = deck.title,
                         stats = "${deck.cardCount} Cards • ${deck.lastStudied}",
                         topic = deck.title,
-                        resolveDeckImage = resolveDeckImage,
+                        imageRes = deck.imageRes,
                         onClick = { onDeckClick(deck) }
                     )
                 }
@@ -292,12 +291,8 @@ fun RecentDeckItem(
     stats: String,
     imageRes: Int? = null,
     topic: String? = null,
-    resolveDeckImage: suspend (topic: String) -> String? = { null },
     onClick: () -> Unit = {}
 ) {
-    val imageUrl by produceState<String?>(initialValue = null, topic) {
-        value = topic?.let { resolveDeckImage(it) }
-    }
     Card(
         onClick = onClick,
         modifier = Modifier
@@ -318,20 +313,15 @@ fun RecentDeckItem(
                     .background(Color(0xFFF5F5F9)),
                 contentAlignment = Alignment.Center
             ) {
-                when {
-                    imageRes != null -> Image(
+                if (imageRes != null) {
+                    Image(
                         painter = painterResource(id = imageRes),
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.FillBounds
                     )
-                    imageUrl != null -> AsyncImage(
-                        model = imageUrl,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                    else -> Icon(
+                } else {
+                    Icon(
                         imageVector = Icons.Default.Collections,
                         contentDescription = null,
                         modifier = Modifier.size(28.dp),

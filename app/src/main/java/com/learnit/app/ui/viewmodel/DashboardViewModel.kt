@@ -1,5 +1,6 @@
 package com.learnit.app.ui.viewmodel
 
+import com.learnit.app.R
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
@@ -9,7 +10,6 @@ import androidx.compose.material.icons.filled.Whatshot
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.learnit.app.data.local.dao.StudySessionDao
-import com.learnit.app.data.remote.DeckImageProvider
 import com.learnit.app.data.repository.FlashcardRepository
 import com.learnit.app.domain.model.DashboardUiState
 import com.learnit.app.domain.model.DeckSummary
@@ -23,8 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     flashcardRepository: FlashcardRepository,
-    sessionDao: StudySessionDao,
-    private val deckImages: DeckImageProvider
+    sessionDao: StudySessionDao
 ) : ViewModel() {
 
     val uiState: StateFlow<DashboardUiState> =
@@ -35,19 +34,18 @@ class DashboardViewModel @Inject constructor(
             val lastStudiedByDeck = sessions.groupBy { it.deckId }
                 .mapValues { (_, s) -> s.maxOf { it.completedAt } }
 
-            // `cards` arrives newest-first (DAO orders by createdAt DESC), so groupBy keeps the
-            // most-recently-generated deck first. sortedByDescending is stable, so studied decks
-            // bubble to the top by recency and unstudied decks keep newest-generated-first order.
             val decks = cards
                 .filter { it.deckId.isNotBlank() }
                 .groupBy { it.deckId }
                 .map { (deckId, deckCards) ->
                     val studiedAt = lastStudiedByDeck[deckId]
+                    val title = deckCards.first().topic
                     DeckSummary(
                         deckId = deckId,
-                        title = deckCards.first().topic,
+                        title = title,
                         cardCount = deckCards.size,
-                        lastStudied = if (studiedAt != null) "Last studied ${relativeAgo(studiedAt)}" else "Not studied yet"
+                        lastStudied = if (studiedAt != null) "Last studied ${relativeAgo(studiedAt)}" else "Not studied yet",
+                        imageRes = getResForTopic(deckId, title)
                     )
                 }
                 .sortedByDescending { lastStudiedByDeck[it.deckId] ?: Long.MIN_VALUE }
@@ -89,7 +87,34 @@ class DashboardViewModel @Inject constructor(
         return list
     }
 
-    suspend fun imageUrlFor(topic: String): String? = deckImages.imageUrlFor(topic)
+    private fun getResForTopic(deckId: String, title: String): Int? {
+        val category = deckId.substringBefore("|").lowercase()
+        val topic = title.lowercase()
+        
+        return when {
+            category.contains("accounting") || topic.contains("accounting") -> R.drawable.accounting
+            category.contains("biology") || topic.contains("biology") -> R.drawable.biology
+            category.contains("history") || topic.contains("history") -> R.drawable.history
+            category.contains("physics") || topic.contains("physics") -> R.drawable.physics
+            category.contains("business") || topic.contains("business") -> R.drawable.business
+            category.contains("chemistry") || topic.contains("chemistry") -> R.drawable.chemistry
+            category.contains("economics") || topic.contains("economics") -> R.drawable.economics
+            category.contains("medicine") || topic.contains("medicine") -> R.drawable.medicine
+            category.contains("politics") || topic.contains("politics") -> R.drawable.politics
+            category.contains("geography") || topic.contains("geography") -> R.drawable.geography
+            category.contains("languages") || topic.contains("languages") -> R.drawable.languages
+            category.contains("sociology") || topic.contains("sociology") -> R.drawable.sociology
+            category.contains("engineering") || topic.contains("engineering") -> R.drawable.engineering
+            category.contains("literature") || topic.contains("literature") -> R.drawable.literature
+            category.contains("philosophy") || topic.contains("philosophy") -> R.drawable.philosophy
+            category.contains("psychology") || topic.contains("psychology") -> R.drawable.psychology
+            category.contains("mathematics") || topic.contains("mathematics") -> R.drawable.mathematics
+            category.contains("art") || category.contains("design") || topic.contains("art") || topic.contains("design") -> R.drawable.art_and_design
+            category.contains("computer") || topic.contains("computer") -> R.drawable.computer_science
+            category.contains("law") || topic.contains("law") -> R.drawable.law
+            else -> null
+        }
+    }
 
     private fun calculateStreak(sessions: List<com.learnit.app.data.local.entity.StudySessionEntity>): Int {
         if (sessions.isEmpty()) return 0
